@@ -12,9 +12,9 @@ import App from "./App";
 import Dashboard from "./Pages/Dashboard/Dashboard";
 import Orders from "./Pages/Orders/Orders";
 import Reviews from "./Pages/Reviews/Reviews";
-import CreateEvent from "./Pages/Events/CreateEvent/CreateEvent";
-import EditEvent from "./Pages/Events/EditEvent/EditEvent";
-import EventsDashboard from "./Pages/Events/EventsDashboard/EventsDashboard";
+import CreateProduct from "./Pages/Products/CreateProduct/CreateProduct";
+import EditProduct from "./Pages/Products/EditProduct/EditProduct";
+import ProductsDashboard from "./Pages/Products/ProductsDashboard/ProductsDashboard";
 import AllUsers from "./Pages/Users/AllUsers/AllUsers";
 import Customers from "./Pages/Users/Customers/Customers";
 import Workers from "./Pages/Users/Workers/Workers";
@@ -52,26 +52,26 @@ const router = createBrowserRouter([
         ),
       },
       {
-        path: "create-events",
+        path: "create-products",
         element: (
           <ProtectedRoute>
-            <CreateEvent />
+            <CreateProduct />
           </ProtectedRoute>
         ),
       },
       {
-        path: "edit-events",
+        path: "edit-products",
         element: (
           <ProtectedRoute>
-            <EditEvent />
+            <EditProduct />
           </ProtectedRoute>
         ),
       },
       {
-        path: "events-dashboard",
+        path: "products-dashboard",
         element: (
           <ProtectedRoute>
-            <EventsDashboard />
+            <ProductsDashboard />
           </ProtectedRoute>
         ),
       },

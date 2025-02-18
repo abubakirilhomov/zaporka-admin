@@ -506,18 +506,18 @@ export const links = [
     ],
   },
   {
-    title: 'Events',
+    title: 'Products',
     links: [
       {
-        name: 'events-dashboard',
+        name: 'products-dashboard',
         icon: <AiOutlineCalendar />,
       },
       {
-        name: 'create-events',
+        name: 'create-products',
         icon: <BsKanban />,
       },
       {
-        name: 'edit-events',
+        name: 'edit-products',
         icon: <FiEdit />,
       }
     ],

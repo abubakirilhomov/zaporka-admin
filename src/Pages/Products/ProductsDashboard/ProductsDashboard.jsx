@@ -1,6 +1,6 @@
 import React from 'react'
 
-const EventsDashboard = () => {
+const ProductsDashboard = () => {
   return (
     <div>
       EventsDashboard
@@ -8,4 +8,4 @@ const EventsDashboard = () => {
   )
 }
 
-export default EventsDashboard
+export default ProductsDashboard
