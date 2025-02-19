@@ -2,7 +2,6 @@ import React, { useEffect } from 'react';
 import { Outlet } from 'react-router-dom'; // Use Outlet to render nested routes
 import { FiSettings } from 'react-icons/fi';
 import { TooltipComponent } from '@syncfusion/ej2-react-popups';
-
 import { Navbar, Footer, Sidebar, ThemeSettings } from './Components';
 import './App.css';
 
