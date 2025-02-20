@@ -12,7 +12,7 @@ const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const { loading, error, postData } = useFetch(
-    `${process.env.REACT_APP_API_URL}/auth/login`,
+    `${process.env.REACT_APP_API_URL}/api/v1/auth/login`,
     {},
     false
   );
