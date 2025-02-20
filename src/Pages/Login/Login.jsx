@@ -1,39 +1,42 @@
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { login } from "../../store/slices/AuthSlice";
+import useFetch from "../../hooks/useFetch";
 
 const Login = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const { loading, error, postData } = useFetch(
+    `${process.env.REACT_APP_API_URL}/api/v1/auth/login`,
+    {},
+    false
+  );
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setLoading(true);
   
     try {
-      const response = await axios.post(
-        "https://api.taketicket.uz/api/v1/login",
-        { email, password }
-      );
-      localStorage.setItem("user", response.data.data.user)
-      localStorage.setItem("token", response.data.data.accessToken);  // Сохранение токена в localStorage
-      dispatch(login(response.data)); // Сохранение данных пользователя в Redux
-      toast.success("Login successful! 🎉");
-      setEmail("");  // Очищаем email
-      setPassword(""); // Очищаем пароль
-      navigate("/dashboard"); // Перенаправление в кабинет
+      const response = await postData({ username, password });
+      console.table(response)
+      if (response?.token) {
+        dispatch(login(response.token));
+        toast.success("Login successful!");
+  
+        localStorage.setItem("user", JSON.stringify(response.user));
+        localStorage.setItem("token", response.token);
+  
+        navigate("/dashboard");
+      } else {
+        toast.error(response?.message || "Login failed");
+      }
     } catch (err) {
-      console.error("Login error:", err.response || err.message);
-      toast.error(err.response?.data?.message || "Login failed ❌");
-    } finally {
-      setLoading(false);
+      console.error("Login Error:", err);
+      toast.error("An error occurred while logging in.");
     }
   };  
 
@@ -44,16 +47,16 @@ const Login = () => {
         <h2 className="text-3xl font-semibold text-center mb-6">Login</h2>
         <form onSubmit={handleLogin} className="space-y-5">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium">
-              Email
+            <label htmlFor="username" className="block text-sm font-medium">
+              Username
             </label>
             <input
               type="text"
-              id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              id="username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               className="mt-1 block w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Enter your email"
+              placeholder="Enter your username"
               required
             />
           </div>
