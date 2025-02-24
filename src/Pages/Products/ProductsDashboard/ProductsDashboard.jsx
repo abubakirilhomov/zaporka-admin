@@ -1,20 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import useFetch from '../../../hooks/useFetch';
 import { toast } from 'react-toastify';
-import { MdEdit, MdDelete, MdOutlinePlaylistAdd } from 'react-icons/md';
+import { MdEdit, MdDelete, MdOutlinePlaylistAdd, MdSave } from 'react-icons/md';
 import CustomTable from '../../../Components/CustomTable/CustomTable'; // Adjust path as needed
 import Loading from '../../../Components/Loading/Loading';
 
 const ProductsDashboard = () => {
-  const apiUrl = `${process.env.REACT_APP_API_URL}/api/v1/`;
-  const { data, loading, error, revalidate, deleteData } = useFetch(apiUrl, {}, false);
+  const apiUrl = `${process.env.REACT_APP_API_URL}/api/v1/`; // Убедились, что эндпоинт правильный
+  const { data, loading, error, revalidate, deleteData, postData, putData } = useFetch(apiUrl, {}, false); // Добавили postData для полноты
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedProduct, setEditedProduct] = useState(null);
 
   useEffect(() => {
     revalidate();
   }, []);
 
-  if (loading) return <Loading/>;
+  if (loading) return <Loading />;
   if (error) return <div className="text-error text-center py-4">Ошибка: {error}</div>;
 
   const products = Array.isArray(data) ? data : [];
@@ -44,27 +46,55 @@ const ProductsDashboard = () => {
 
   const openModal = (product) => {
     setSelectedProduct(product);
+    setEditedProduct({ ...product }); // Копируем продукт для редактирования
+    setIsEditing(false); // По умолчанию открываем в режиме просмотра
     document.getElementById('product_modal').showModal();
+  };
+
+  const handleEditToggle = () => {
+    setIsEditing(!isEditing);
+    if (!isEditing) {
+      setEditedProduct({ ...selectedProduct }); // Инициализируем данные для редактирования
+    }
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setEditedProduct((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSave = async () => {
+    if (!editedProduct || !editedProduct._id) return;
+    try {
+      const updateUrl = `${apiUrl}${editedProduct._id}`;
+      await putData(updateUrl, editedProduct); // Используем динамический URL
+      revalidate(); // Обновляем список продуктов
+      setIsEditing(false);
+      toast.success('Продукт успешно обновлён');
+    } catch (err) {
+      toast.error('Ошибка при обновлении продукта: ' + err.message);
+    }
   };
 
   const handleDelete = async () => {
     if (!selectedProduct) return;
     try {
       const deleteUrl = `${apiUrl}${selectedProduct._id}`;
-      await deleteData();
+      await deleteData(deleteUrl); // Используем динамический URL
       revalidate();
       setSelectedProduct(null);
-      document.getElementById('product_modal').close();
+      // Проверяем, существует ли модальное окно перед закрытием
+      const modal = document.getElementById('product_modal');
+      if (modal) {
+        modal.close();
+      }
       toast.success('Продукт успешно удалён');
     } catch (err) {
       toast.error('Ошибка при удалении продукта: ' + err.message);
     }
-  };
-
-  const handleEdit = () => {
-    if (!selectedProduct) return;
-    console.log('Редактировать продукт:', selectedProduct);
-    toast.info('Функциональность редактирования будет реализована');
   };
 
   return (
@@ -85,37 +115,100 @@ const ProductsDashboard = () => {
                 <MdOutlinePlaylistAdd className="text-2xl" /> Детали продукта: {selectedProduct.title}
               </h3>
               <div className="py-4 space-y-4">
-                {Object.entries(selectedProduct).map(([key, value]) => (
-                  <div key={key} className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                    <span className="font-semibold capitalize text-base-content">
-                      {key.replace(/([A-Z])/g, ' $1').trim()}:
-                    </span>
-                    <span className="text-base-content">
-                      {Array.isArray(value)
-                        ? value.join(', ')
-                        : value === true
-                        ? 'Да'
-                        : value === false
-                        ? 'Нет'
-                        : value || 'Н/Д'}
-                    </span>
+                {isEditing ? (
+                  // Форма редактирования
+                  <div className="space-y-4">
+                    {Object.entries(editedProduct).map(([key, value]) => {
+                      if (key === '_id' || key === 'createdAt' || key === 'updatedAt') return null; // Исключаем системные поля
+                      return (
+                        <div key={key} className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                          <label className="font-semibold capitalize text-base-content">{key.replace(/([A-Z])/g, ' $1').trim()}:</label>
+                          {typeof value === 'boolean' ? (
+                            <select
+                              name={key}
+                              value={editedProduct[key] ? 'true' : 'false'}
+                              onChange={handleInputChange}
+                              className="input input-bordered w-full"
+                            >
+                              <option value="true">Да</option>
+                              <option value="false">Нет</option>
+                            </select>
+                          ) : Array.isArray(value) ? (
+                            <input
+                              type="text"
+                              name={key}
+                              value={value.join(', ')}
+                              onChange={handleInputChange}
+                              className="input input-bordered w-full"
+                              placeholder={`Введите через запятую, например: ${value.join(', ')}`}
+                            />
+                          ) : (
+                            <input
+                              type="text"
+                              name={key}
+                              value={editedProduct[key] || ''}
+                              onChange={handleInputChange}
+                              className="input input-bordered w-full"
+                            />
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
-                ))}
+                ) : (
+                  // Режим просмотра
+                  <div className="space-y-4">
+                    {Object.entries(selectedProduct).map(([key, value]) => (
+                      <div key={key} className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        <span className="font-semibold capitalize text-base-content">
+                          {key.replace(/([A-Z])/g, ' $1').trim()}:
+                        </span>
+                        <span className="text-base-content">
+                          {Array.isArray(value)
+                            ? value.join(', ')
+                            : value === true
+                            ? 'Да'
+                            : value === false
+                            ? 'Нет'
+                            : value || 'Н/Д'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
-              <div className="modal-action">
-                <form method="dialog" className="flex gap-2">
-                  <button className="btn btn-primary" onClick={handleEdit}>
+              <div className="modal-action flex gap-2">
+                {isEditing ? (
+                  <button
+                    className="btn btn-success"
+                    onClick={handleSave}
+                  >
+                    <MdSave className="mr-2" /> Сохранить
+                  </button>
+                ) : (
+                  <button
+                    className="btn btn-primary"
+                    onClick={handleEditToggle}
+                  >
                     <MdEdit className="mr-2" /> Редактировать
                   </button>
-                  <button className="btn btn-error" onClick={handleDelete}>
-                    <MdDelete className="mr-2" /> Удалить
-                  </button>
-                  <button className="btn">Закрыть</button>
-                </form>
+                )}
+                <button
+                  className="btn btn-error"
+                  onClick={handleDelete}
+                >
+                  <MdDelete className="mr-2" /> Удалить
+                </button>
+                <button
+                  className="btn"
+                  onClick={() => document.getElementById('product_modal').close()}
+                >
+                  Закрыть
+                </button>
               </div>
             </>
           ) : (
-            <p>Продукт не выбран</p>
+            <p className="text-base-content text-center py-4">Продукт не выбран</p>
           )}
         </div>
       </dialog>

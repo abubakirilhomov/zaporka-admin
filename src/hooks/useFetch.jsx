@@ -1,12 +1,12 @@
 import { useState, useEffect, useCallback } from "react";
 
-const useFetch = (url, options = {}, autoFetch = true) => {
+const useFetch = (baseUrl, options = {}, autoFetch = true) => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(autoFetch);
   const [error, setError] = useState(null);
 
   const fetchData = useCallback(
-    async (overrideOptions = {}) => {
+    async (url, overrideOptions = {}) => {
       if (!url) return;
 
       setLoading(true);
@@ -31,34 +31,34 @@ const useFetch = (url, options = {}, autoFetch = true) => {
         setLoading(false);
       }
     },
-    [url] // Убрали options из зависимостей
+    [options] // Убрали url из зависимостей, так как теперь используем динамический url
   );
 
   useEffect(() => {
     if (autoFetch) {
-      fetchData();
+      fetchData(baseUrl);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [url, autoFetch]); // Убрали fetchData из зависимостей
+  }, [baseUrl, autoFetch]);
 
-  const revalidate = () => fetchData();
+  const revalidate = () => fetchData(baseUrl);
 
-  const postData = async (body) =>
-    fetchData({
+  const postData = async (url, body) =>
+    fetchData(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
 
-  const putData = async (body) =>
-    fetchData({
+  const putData = async (url, body) =>
+    fetchData(url, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
 
-  const deleteData = async () =>
-    fetchData({
+  const deleteData = async (url) =>
+    fetchData(url, {
       method: "DELETE",
     });
 
