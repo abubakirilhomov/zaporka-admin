@@ -7,9 +7,8 @@ const useFetch = (url, options = {}, autoFetch = true) => {
 
   const fetchData = useCallback(
     async (overrideOptions = {}) => {
-      const controller = new AbortController();
-      const signal = controller.signal;
-      
+      if (!url) return;
+
       setLoading(true);
       setError(null);
 
@@ -17,32 +16,30 @@ const useFetch = (url, options = {}, autoFetch = true) => {
         const response = await fetch(url, {
           ...options,
           ...overrideOptions,
-          signal,
         });
-        console.log(response);
+
         if (!response.ok) {
           throw new Error(`Ошибка: ${response.status} ${response.statusText}`);
         }
 
         const result = await response.json();
         setData(result);
-        return result; // ВАЖНО: возвращаем результат
+        return result;
       } catch (err) {
-        if (err.name !== "AbortError") {
-          setError(err.message);
-        }
+        setError(err.message);
       } finally {
         setLoading(false);
       }
     },
-    [url, options]
+    [url] // Убрали options из зависимостей
   );
 
   useEffect(() => {
     if (autoFetch) {
       fetchData();
     }
-  }, [fetchData, autoFetch]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [url, autoFetch]); // Убрали fetchData из зависимостей
 
   const revalidate = () => fetchData();
 
