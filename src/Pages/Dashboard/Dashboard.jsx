@@ -3,8 +3,9 @@ import { useSelector } from "react-redux";
 import { motion } from "framer-motion";
 
 const Dashboard = () => {
-  const user = useSelector((state) => state.auth.user.username);
-  console.log(user);
+  const user = useSelector((state) => state?.auth?.user?.username);
+  const store = useSelector((state) => state)
+  console.log(store)
   return (
     <div>
       <motion.p

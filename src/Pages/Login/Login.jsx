@@ -19,24 +19,36 @@ const Login = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    console.log('Login data:', { username, password }); // Логируем отправляемые данные
-  
+    console.log("Login data:", { username, password });
+
     try {
-      const response = await postData(`${process.env.REACT_APP_API_URL}/api/v1/auth/login`, { username, password });
+      const response = await postData(
+        `${process.env.REACT_APP_API_URL}/api/v1/auth/login`,
+        { username, password }
+      );
+
       console.table(response);
-  
+      console.log(response);
+
       if (response?.token) {
-        dispatch(login(response.token));
+        const userData = {
+          id: response.id,
+          username: response.username,
+          token: response.token,
+        };
+
+        dispatch(login(userData));
         toast.success("Вход выполнен успешно!");
-  
-        localStorage.setItem("user", JSON.stringify(response.user));
+
         localStorage.setItem("token", response.token);
-  
+        localStorage.setItem("id", response.id);
+        localStorage.setItem("username", response.username);
+
         navigate("/dashboard");
       } else {
         const errorMessage = response?.message || "Не удалось войти";
         toast.error(errorMessage);
-        console.log('Login response:', response);
+        console.log("Login response:", response);
       }
     } catch (err) {
       console.error("Login Error:", err);

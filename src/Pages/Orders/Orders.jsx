@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import useFetch from '../../hooks/useFetch';
 import CustomTable from '../../Components/CustomTable/CustomTable';
 import { MdOutlinePlaylistAdd } from 'react-icons/md';
+import Loading from '../../Components/Loading/Loading';
 
 const OrdersDashboard = () => {
   const apiUrl = `${process.env.REACT_APP_API_URL}/api/v1/`;
@@ -11,7 +12,7 @@ const OrdersDashboard = () => {
     revalidate();
   }, []);
 
-  if (loading) return <div className="text-center py-4">Загрузка...</div>;
+  if (loading) return <Loading/>;
   if (error) return <div className="text-error text-center py-4">Ошибка: {error}</div>;
 
   const orders = Array.isArray(data) ? data : [];
