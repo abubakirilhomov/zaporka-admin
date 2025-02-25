@@ -33,6 +33,7 @@ const Login = () => {
         navigate("/dashboard");
       } else {
         toast.error(response?.message || "Login failed");
+        console.log(response)
       }
     } catch (err) {
       console.error("Login Error:", err);
