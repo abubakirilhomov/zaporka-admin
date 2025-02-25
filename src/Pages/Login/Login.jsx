@@ -16,30 +16,33 @@ const Login = () => {
     {},
     false
   );
-  console.log(process.env.REACT_APP_API_URL)
+
   const handleLogin = async (e) => {
     e.preventDefault();
+    console.log('Login data:', { username, password }); // Логируем отправляемые данные
   
     try {
-      const response = await postData({ username, password });
-      console.table(response)
+      const response = await postData(`${process.env.REACT_APP_API_URL}/api/v1/auth/login`, { username, password });
+      console.table(response);
+  
       if (response?.token) {
         dispatch(login(response.token));
-        toast.success("Login successful!");
+        toast.success("Вход выполнен успешно!");
   
         localStorage.setItem("user", JSON.stringify(response.user));
         localStorage.setItem("token", response.token);
   
         navigate("/dashboard");
       } else {
-        toast.error(response?.message || "Login failed");//
-        console.log(response)
+        const errorMessage = response?.message || "Не удалось войти";
+        toast.error(errorMessage);
+        console.log('Login response:', response);
       }
     } catch (err) {
       console.error("Login Error:", err);
-      toast.error("An error occurred while logging in.");
+      toast.error("Произошла ошибка при входе.");
     }
-  };  
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-base-300">
