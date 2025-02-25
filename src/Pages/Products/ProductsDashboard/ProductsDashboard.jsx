@@ -96,7 +96,7 @@ const ProductsDashboard = () => {
       toast.error('Ошибка при удалении продукта: ' + err.message);
     }
   };
-
+//sadsadadsada
   return (
     <div className="p-4">
       <CustomTable
