@@ -516,10 +516,6 @@ export const links = [
         name: 'create-products',
         icon: <BsKanban />,
       },
-      {
-        name: 'edit-products',
-        icon: <FiEdit />,
-      }
     ],
   },
   {

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const StateContext = createContext();
 
@@ -12,14 +12,23 @@ const initialState = {
 export const ContextProvider = ({ children }) => {
   const [screenSize, setScreenSize] = useState(undefined);
   const [currentColor, setCurrentColor] = useState('#03C9D7');
-  const [currentMode, setCurrentMode] = useState('Light');
+  const [currentMode, setCurrentMode] = useState(() => {
+    const savedTheme = localStorage.getItem('themeMode');
+    return savedTheme || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'Dark' : 'Light');
+  });
   const [themeSettings, setThemeSettings] = useState(false);
   const [activeMenu, setActiveMenu] = useState(true);
   const [isClicked, setIsClicked] = useState(initialState);
 
-  const setMode = (e) => {
-    setCurrentMode(e.target.value);
-    localStorage.setItem('themeMode', e.target.value);
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', currentMode.toLowerCase());
+  }, [currentMode]);
+
+  // Updated setMode to accept a value directly instead of an event
+  const setMode = (mode) => {
+    setCurrentMode(mode);
+    localStorage.setItem('themeMode', mode);
+    document.documentElement.setAttribute('data-theme', mode.toLowerCase());
   };
 
   const setColor = (color) => {
@@ -30,8 +39,26 @@ export const ContextProvider = ({ children }) => {
   const handleClick = (clicked) => setIsClicked({ ...initialState, [clicked]: true });
 
   return (
-    // eslint-disable-next-line react/jsx-no-constructed-context-values
-    <StateContext.Provider value={{ currentColor, currentMode, activeMenu, screenSize, setScreenSize, handleClick, isClicked, initialState, setIsClicked, setActiveMenu, setCurrentColor, setCurrentMode, setMode, setColor, themeSettings, setThemeSettings }}>
+    <StateContext.Provider
+      value={{
+        currentColor,
+        currentMode,
+        activeMenu,
+        screenSize,
+        setScreenSize,
+        handleClick,
+        isClicked,
+        initialState,
+        setIsClicked,
+        setActiveMenu,
+        setCurrentColor,
+        setCurrentMode,
+        setMode,
+        setColor,
+        themeSettings,
+        setThemeSettings,
+      }}
+    >
       {children}
     </StateContext.Provider>
   );
