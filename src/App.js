@@ -52,7 +52,7 @@ const App = () => {
           <div className="fixed md:static shadow bg-base-100 navbar w-full">
             <Navbar />
           </div>
-          <div className="pl-5 pt-5">
+          <div className="pl-5 py-8">
             {themeSettings && <ThemeSettings />}
             <Outlet /> {/* Render nested routes here */}
           </div>
