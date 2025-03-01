@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import useFetch from "../../../hooks/useFetch";
-import CustomPagination from "../../../Components/";
+import CustomPagination from "../../../Components/CustomPagination/CustomPagination";
 import CustomTable from "../../../Components/CustomTable/CustomTable";
 import Loading from "../../../Components/Loading/Loading";
 
