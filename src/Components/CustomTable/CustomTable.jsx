@@ -11,7 +11,7 @@ const CustomTable = ({
   if (!Array.isArray(data) || data.length === 0) {
     return <div className="text-center py-4 text-base-content">{emptyMessage}</div>;
   }
-
+  console.log(data)
   return (
     <div className="overflow-x-auto rounded-lg border border-base-content/5 bg-base-100">
       <table className="table w-full">
