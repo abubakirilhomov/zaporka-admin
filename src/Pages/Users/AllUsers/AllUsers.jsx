@@ -1,54 +1,117 @@
 import React, { useEffect, useState } from "react";
-import useFetch from "../../../hooks/useFetch";
+import { Search, RefreshCcw, Users } from "react-feather";
 import CustomPagination from "../../../Components/CustomPagination/CustomPagination";
 import CustomTable from "../../../Components/CustomTable/CustomTable";
 import Loading from "../../../Components/Loading/Loading";
 
 const AllUsers = () => {
   const [currentPage, setCurrentPage] = useState(1);
-  const usersPerPage = 10;
-  const skip = (currentPage - 1) * usersPerPage;
+  const [usersPerPage, setUsersPerPage] = useState(10);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortedBy, setSortedBy] = useState(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const { data, loading, error, revalidate } = useFetch(
-    `https://dummyjson.com/users?skip=${skip}&limit=${usersPerPage}`,
-    {},
-    false
-  );
-
+  const fetchUsers = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch("https://zaporka-backend.onrender.com/api/v1/users", {
+        method: "GET",
+        headers: { "Accept": "*/*" },
+      });
+      if (!response.ok) {
+        throw new Error(`Ошибка: ${response.status}`);
+      }
+      const result = await response.json();
+      console.log("Данные пользователей:", result); // Вывод в консоль
+      setData(result);
+    } catch (err) {
+      console.error("Ошибка загрузки данных:", err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    revalidate();
-  }, [currentPage]);
+    fetchUsers();
+  }, [currentPage, usersPerPage]);
 
-  if (loading || !data || !data.users) {
-    return <Loading />;
-  }
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+    fetchUsers();
+    setTimeout(() => setIsRefreshing(false), 1000);
+  };
 
-  if (error) {
-    return <p className="text-error text-lg">Error: {error}</p>;
+  if (loading) return <Loading />;
+  if (error) return <p className="text-error text-lg">Ошибка: {error}</p>;
+
+  let filteredUsers = data.filter((user) =>
+    [
+      user._id,
+      user.username.toLowerCase(),
+    ].some((field) => field.includes(searchTerm.toLowerCase()))
+  );
+
+  if (sortedBy) {
+    filteredUsers.sort((a, b) => (a[sortedBy] > b[sortedBy] ? 1 : -1));
   }
 
   const columns = [
-    { key: "id", label: "ID" },
-    { key: "firstName", label: "Имя" },
-    { key: "lastName", label: "Фамилия" },
-    { key: "email", label: "Email" },
-    { key: "age", label: "Возраст" },
-    { key: "gender", label: "Пол" },
+    { key: "_id", label: "ID", sortable: true },
+    { key: "username", label: "Имя пользователя", sortable: true },
   ];
 
   return (
-    <div className="w-full h-screen flex flex-col items-center p-5 bg-base-100 shadow-lg rounded-lg">
-      <h2 className="text-3xl font-bold text-center mb-6 text-base-content">Все пользователи</h2>
-      
-      <div className="w-full flex-grow overflow-auto">
-        <CustomTable data={data.users} columns={columns} emptyMessage="Пользователи не найдены" />
+    <div className="w-full h-full flex flex-col items-center p-5 bg-base-100 shadow-lg rounded-lg">
+      <h2 className="text-3xl font-bold text-center mb-6 text-base-content flex items-center">
+        <Users className="mr-2 text-primary" size={30} /> Все пользователи
+      </h2>
+
+      <div className="flex justify-between w-full mb-4 items-center">
+        <div className="relative w-1/3">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" size={16} />
+          <input
+            type="text"
+            placeholder="Поиск..."
+            className="input input-bordered w-full pl-10 text-sm focus:ring focus:ring-primary"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+        <select
+          className="select select-bordered text-sm"
+          value={usersPerPage}
+          onChange={(e) => setUsersPerPage(Number(e.target.value))}
+        >
+          <option value={5}>5</option>
+          <option value={10}>10</option>
+          <option value={20}>20</option>
+        </select>
+        <button
+          className={`btn btn-primary flex items-center text-sm transition-transform ${isRefreshing ? "animate-spin" : ""}`}
+          onClick={handleRefresh}
+        >
+          <RefreshCcw size={16} className="mr-1" /> Обновить
+        </button>
+      </div>
+
+      <div className="w-full">
+        <CustomTable
+          data={filteredUsers}
+          columns={columns}
+          emptyMessage="Пользователи не найдены"
+          onSort={setSortedBy}
+        />
       </div>
 
       <div className="mt-4">
         <CustomPagination
           currentPage={currentPage}
-          totalPages={Math.ceil(208 / usersPerPage)}
+          totalPages={Math.ceil(data.length / usersPerPage)}
           onPageChange={setCurrentPage}
         />
       </div>
