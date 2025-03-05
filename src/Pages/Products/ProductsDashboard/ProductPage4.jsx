@@ -73,7 +73,7 @@ const ProductsDashboard = () => {
       price: 129.99,
       category: "Accessories",
       stock: 150,
-    }
+    },
   ]);
 
   return (
@@ -101,14 +101,8 @@ const ProductsDashboard = () => {
           ))}
         </tbody>
       </table>
-      <div className="flex justify-center gap-4">
-        <button className="btn bg-blue-600 hover:bg-blue-700 text-white text-lg px-6 py-3 rounded-lg" onClick={() => navigate("/products-1")}>Страница 1</button>
-        <button className="btn bg-green-600 hover:bg-green-700 text-white text-lg px-6 py-3 rounded-lg" onClick={() => navigate("/products-2")}>Страница 2</button>
-        <button className="btn bg-yellow-500 hover:bg-yellow-600 text-white text-lg px-6 py-3 rounded-lg" onClick={() => navigate("/products-3")}>Страница 3</button>
-        <button className="btn bg-red-600 hover:bg-red-700 text-white text-lg px-6 py-3 rounded-lg" onClick={() => navigate("/products-4")}>Страница 4</button>
-      </div>
     </div>
   );
 };
 
-export default ProductsDashboard;
+export default ProductPage4;

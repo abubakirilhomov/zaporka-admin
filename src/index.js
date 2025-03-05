@@ -15,11 +15,12 @@ import Reviews from "./Pages/Reviews/Reviews";
 import CreateProduct from "./Pages/Products/CreateProduct/CreateProduct";
 import EditProduct from "./Pages/Products/EditProduct/EditProduct";
 import ProductsDashboard from "./Pages/Products/ProductsDashboard/ProductsDashboard";
-import AllUsers from "./Pages/Users/AllUsers/AllUsers";
 import Customers from "./Pages/Users/Customers/Customers";
 import Workers from "./Pages/Users/Workers/Workers";
 import Login from "./Pages/Login/Login";
 import ProtectedRoute from "./hooks/PrivateRoute";
+import AllUsers from './Pages/Users/create/Allusers'
+import LoginForm from './Pages/Users/create/LoginForm'; 
 
 // Define your routes
 const router = createBrowserRouter([

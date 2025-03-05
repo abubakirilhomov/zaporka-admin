@@ -1,19 +1,12 @@
-import { useState } from "react";
-import ProductsDashboard from "./Pages/Products/ProductsDashboard/ProductsDashboard";
+import React from "react";
+import AllUsers from "./Pages/Users/AllUsers/AllUsers"; 
 
 const App = () => {
-  const [showProducts, setShowProducts] = useState(false);
-
   return (
-    <div className="p-4">
-      <button
-        onClick={() => setShowProducts(!showProducts)}
-        className="bg-blue-500 text-white p-2 rounded"
-      >
-        {showProducts ? "Скрыть продукты" : "Показать продукты"}
-      </button>
-
-      {showProducts && <ProductsDashboard />}
+    <div>
+      <h1 style={{ textAlign: "center", marginTop: "50px" }}>
+        ✅ Приложение работает!
+      </h1>
     </div>
   );
 };
