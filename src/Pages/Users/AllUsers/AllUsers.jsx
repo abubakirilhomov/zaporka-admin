@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import { Search, RefreshCcw, Users } from "react-feather";
 import CustomPagination from "../../../Components/CustomPagination/CustomPagination";
 import CustomTable from "../../../Components/CustomTable/CustomTable";
@@ -26,7 +27,7 @@ const AllUsers = () => {
         throw new Error(`Ошибка: ${response.status}`);
       }
       const result = await response.json();
-      console.log("Данные пользователей:", result); // Вывод в консоль
+      console.log("Данные пользователей:", result);
       setData(result);
     } catch (err) {
       console.error("Ошибка загрузки данных:", err);
@@ -50,10 +51,7 @@ const AllUsers = () => {
   if (error) return <p className="text-error text-lg">Ошибка: {error}</p>;
 
   let filteredUsers = data.filter((user) =>
-    [
-      user._id,
-      user.username.toLowerCase(),
-    ].some((field) => field.includes(searchTerm.toLowerCase()))
+    [user._id, user.username.toLowerCase()].some((field) => field.includes(searchTerm.toLowerCase()))
   );
 
   if (sortedBy) {
@@ -91,29 +89,25 @@ const AllUsers = () => {
           <option value={10}>10</option>
           <option value={20}>20</option>
         </select>
-        <button
-          className={`btn btn-primary flex items-center text-sm transition-transform ${isRefreshing ? "animate-spin" : ""}`}
+
+        <motion.button
+          className="btn btn-primary flex items-center text-sm"
           onClick={handleRefresh}
+          initial={{ scale: 1 }}
+          whileTap={{ scale: 0.9 }}
+          animate={isRefreshing ? { y: [-3, 3, -3] } : {}}
+          transition={{ duration: 0.4, repeat: isRefreshing ? Infinity : 0, repeatType: "mirror" }}
         >
           <RefreshCcw size={16} className="mr-1" /> Обновить
-        </button>
+        </motion.button>
       </div>
 
       <div className="w-full">
-        <CustomTable
-          data={filteredUsers}
-          columns={columns}
-          emptyMessage="Пользователи не найдены"
-          onSort={setSortedBy}
-        />
+        <CustomTable data={filteredUsers} columns={columns} emptyMessage="Пользователи не найдены" onSort={setSortedBy} />
       </div>
 
       <div className="mt-4">
-        <CustomPagination
-          currentPage={currentPage}
-          totalPages={Math.ceil(data.length / usersPerPage)}
-          onPageChange={setCurrentPage}
-        />
+        <CustomPagination currentPage={currentPage} totalPages={Math.ceil(data.length / usersPerPage)} onPageChange={setCurrentPage} />
       </div>
     </div>
   );
