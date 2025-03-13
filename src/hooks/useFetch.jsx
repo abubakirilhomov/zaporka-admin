@@ -31,14 +31,13 @@ const useFetch = (baseUrl, options = {}, autoFetch = true) => {
         setLoading(false);
       }
     },
-    [options] // Убрали url из зависимостей, так как теперь используем динамический url
+    [options]
   );
 
   useEffect(() => {
     if (autoFetch) {
       fetchData(baseUrl);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [baseUrl, autoFetch]);
 
   const revalidate = () => fetchData(baseUrl);

@@ -17,36 +17,38 @@ const ProductsDashboard = () => {
   const apiUrl = `${process.env.REACT_APP_API_URL}/api/v1/products`;
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const limit = 10; // Number of items per page
-  const { data, loading, error, revalidate } = useFetch(
-    `${apiUrl}?page=${currentPage}&limit=${limit}`,
-    {},
-    false
-  );
+  const limit = 10;
+
+  // Include pagination parameters in the fetch URL
+  const fetchUrl = `${apiUrl}?page=${currentPage}&limit=${limit}`;
+  const { data, loading, error, revalidate } = useFetch(fetchUrl, {}, false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editedProduct, setEditedProduct] = useState(null);
 
+  // Debug logging
+  console.log("Raw API data:", data);
+
   useEffect(() => {
     revalidate();
-  }, [currentPage, revalidate]); // Revalidate when page changes
+  }, [currentPage]);
 
-  // Handle API response and set total pages
   useEffect(() => {
-    if (data && Array.isArray(data.data)) {
-      const products = data.data;
-      const total = data.total || products.length; // Adjust based on your API response structure
+    if (data) {
+      console.log("Received data:", data); // Debug the structure
+      const products = Array.isArray(data.data) ? data.data : Array.isArray(data) ? data : [];
+      const total = data.total || products.length; // Adjust based on API response
       setTotalPages(Math.ceil(total / limit));
     }
   }, [data, limit]);
 
   if (loading) return <Loading />;
-  if (error)
-    return <div className="text-error text-center py-4">Ошибка: {error}</div>;
+  if (error) return <div className="text-error text-center py-4">Ошибка: {error}</div>;
 
-  const products = Array.isArray(data?.data) ? data.data : [];
+  // Ensure products is always an array
+  const products = Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : [];
+  console.log("Processed products:", products); // Debug the final array
 
-  // Define fields with English keys and Russian labels
   const importantFields = [
     { key: "title", label: "Название" },
     { key: "stock", label: "Запас" },
@@ -79,25 +81,20 @@ const ProductsDashboard = () => {
 
   const handleEditToggle = () => {
     setIsEditing(!isEditing);
-    if (!isEditing) {
-      setEditedProduct({ ...selectedProduct });
-    }
+    if (!isEditing) setEditedProduct({ ...selectedProduct });
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setEditedProduct((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setEditedProduct((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSave = async () => {
     if (!editedProduct || !editedProduct._id) return;
     try {
       const updateUrl = `${apiUrl}/${editedProduct._id}`;
-      await putData(updateUrl, editedProduct);
-      revalidate(); // This will refetch the current page
+      await useFetch.putData(updateUrl, editedProduct);
+      revalidate();
       setIsEditing(false);
       toast.success("Продукт успешно обновлён");
       document.getElementById("product_modal").close();
@@ -109,51 +106,24 @@ const ProductsDashboard = () => {
   const handleDelete = async () => {
     if (!selectedProduct) return;
     try {
-      const deleteUrl = `${apiUrl}/${selectedProduct._id}`;
-      await deleteData(deleteUrl);
-      revalidate(); // This will refetch the current page
+      const deleteUrl = `${apiUrl}/${selectedProduct._id}`; // Fixed: Added "/"
+      await useFetch.deleteData(deleteUrl);
+      revalidate();
       setSelectedProduct(null);
-      const modal = document.getElementById("product_modal");
-      if (modal) {
-        modal.close();
-      }
+      document.getElementById("product_modal").close();
       toast.success("Продукт успешно удалён");
     } catch (err) {
       toast.error("Ошибка при удалении продукта: " + err.message);
     }
   };
 
-  // Function to check if the field should be displayed
   const shouldDisplayField = (key) => {
     const excludedFields = [
-      "_id",
-      "createdAt",
-      "updatedAt",
-      "__v",
-      "accession",
-      "advantages",
-      "availability",
-      "construction",
-      "createdAt",
-      "currency",
-      "description",
-      "mainImage",
-      "maxPressure",
-      "minPressure",
-      "rotationAngle",
-      "serviceLife",
-      "sizeInch",
-      "sizeMm",
-      "standard",
-      "surfaceMaterial",
-      "swipeImages",
-      "thickness",
-      "type",
-      "updatedAt",
-      "views",
-      "workEnv",
-      "workingPressure",
-      "workingTemperature",
+      "_id", "createdAt", "updatedAt", "__v", "accession", "advantages",
+      "availability", "construction", "currency", "description", "mainImage",
+      "maxPressure", "minPressure", "rotationAngle", "serviceLife", "sizeInch",
+      "sizeMm", "standard", "surfaceMaterial", "swipeImages", "thickness",
+      "type", "views", "workEnv", "workingPressure", "workingTemperature",
     ];
     return !excludedFields.includes(key);
   };
@@ -165,8 +135,7 @@ const ProductsDashboard = () => {
   return (
     <div className="bg-base-100 p-4 rounded-lg">
       <h1 className="flex items-center justify-center pb-2 w-full text-2xl font-bold">
-        <MdOutlineStore className="text-primary" />
-        Все товары
+        <MdOutlineStore className="text-primary" /> Все товары
       </h1>
       <CustomTable
         data={products}
@@ -175,25 +144,25 @@ const ProductsDashboard = () => {
         actions={actions}
         emptyMessage="Нет данных о продуктах"
       />
-      <div >
-        <CustomPagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={handlePageChange}
-        />
-      </div>
+      {totalPages > 1 && (
+        <div>
+          <CustomPagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+          />
+        </div>
+      )}
       <dialog id="product_modal" className="modal">
         <div className="modal-box w-11/12 max-w-5xl bg-base-100 shadow-xl rounded-lg">
           {selectedProduct ? (
             <>
-              {/* Кнопка закрытия с крестиком */}
               <button
                 className="btn btn-sm btn-circle absolute right-2 top-2"
                 onClick={() => document.getElementById("product_modal").close()}
               >
                 <MdClose className="text-lg" />
               </button>
-
               <h3 className="font-bold text-lg flex items-center gap-2 mb-6">
                 <MdOutlinePlaylistAdd className="text-2xl" /> Детали продукта:{" "}
                 {selectedProduct.title}
@@ -228,9 +197,7 @@ const ProductsDashboard = () => {
                               value={value.join(", ")}
                               onChange={handleInputChange}
                               className="input input-bordered w-full"
-                              placeholder={`Введите через запятую, например: ${value.join(
-                                ", "
-                              )}`}
+                              placeholder={`Введите через запятую, например: ${value.join(", ")}`}
                             />
                           ) : (
                             <input
@@ -278,10 +245,7 @@ const ProductsDashboard = () => {
                     <MdSave className="mr-2" /> Сохранить
                   </button>
                 ) : (
-                  <button
-                    className="btn btn-primary"
-                    onClick={handleEditToggle}
-                  >
+                  <button className="btn btn-primary" onClick={handleEditToggle}>
                     <MdEdit className="mr-2" /> Редактировать
                   </button>
                 )}
@@ -290,18 +254,14 @@ const ProductsDashboard = () => {
                 </button>
                 <button
                   className="btn"
-                  onClick={() =>
-                    document.getElementById("product_modal").close()
-                  }
+                  onClick={() => document.getElementById("product_modal").close()}
                 >
                   Закрыть
                 </button>
               </div>
             </>
           ) : (
-            <p className="text-base-content text-center py-4">
-              Продукт не выбран
-            </p>
+            <p className="text-base-content text-center py-4">Продукт не выбран</p>
           )}
         </div>
       </dialog>
