@@ -1,4 +1,3 @@
-// Пример реализации CustomTable
 import React from "react";
 
 const CustomTable = ({ data, columns, emptyMessage, onSort }) => {
@@ -32,7 +31,7 @@ const CustomTable = ({ data, columns, emptyMessage, onSort }) => {
               <tr key={row._id || index}>
                 {columns.map((column) => (
                   <td key={column.key}>
-                    {column.render ? column.render(row) : row[column.key]}
+                    {column.render ? column.render(row, index) : row[column.key]}
                   </td>
                 ))}
               </tr>
