@@ -21,7 +21,7 @@ const ProductsDashboard = () => {
 
   // Include pagination parameters in the fetch URL
   const fetchUrl = `${apiUrl}?page=${currentPage}&limit=${limit}`;
-  const { data, loading, error, revalidate } = useFetch(fetchUrl, {}, false);
+  const { data, loading, error, revalidate, putData, deleteData } = useFetch(fetchUrl, {}, false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editedProduct, setEditedProduct] = useState(null);
@@ -36,8 +36,9 @@ const ProductsDashboard = () => {
   useEffect(() => {
     if (data) {
       console.log("Received data:", data); // Debug the structure
-      const products = Array.isArray(data.data) ? data.data : Array.isArray(data) ? data : [];
-      const total = data.total || products.length; // Adjust based on API response
+      // Check if the response is a paginated object or a flat array
+      const products = Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : [];
+      const total = data?.total || products.length; // Use total if provided, otherwise use array length
       setTotalPages(Math.ceil(total / limit));
     }
   }, [data, limit]);
@@ -49,6 +50,7 @@ const ProductsDashboard = () => {
   const products = Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : [];
   console.log("Processed products:", products); // Debug the final array
 
+  // Define important fields for the table
   const importantFields = [
     { key: "title", label: "Название" },
     { key: "stock", label: "Запас" },
@@ -58,9 +60,16 @@ const ProductsDashboard = () => {
     { key: "model", label: "Модель" },
   ];
 
+  // Map fields to columns with a render function for formatting
   const columns = importantFields.map((field) => ({
     key: field.key,
     label: field.label,
+    render: (value) =>
+      value === undefined || value === null
+        ? "Н/Д"
+        : Array.isArray(value)
+        ? value.join(", ")
+        : value.toString(),
   }));
 
   const actions = [
@@ -86,14 +95,35 @@ const ProductsDashboard = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setEditedProduct((prev) => ({ ...prev, [name]: value }));
+    // Handle array fields by splitting the input string
+    const isArrayField = [
+      "price",
+      "sizeInInch",
+      "sizeInmm",
+      "DN",
+      "type",
+      "surfaceMaterial",
+      "workEnv",
+      "nominalPressure",
+      "workingPressure",
+      "minPressure",
+      "maxPressure",
+      "application",
+      "advantages",
+      "swiperImages",
+    ].includes(name);
+
+    setEditedProduct((prev) => ({
+      ...prev,
+      [name]: isArrayField ? value.split(",").map((item) => item.trim()) : value,
+    }));
   };
 
   const handleSave = async () => {
     if (!editedProduct || !editedProduct._id) return;
     try {
       const updateUrl = `${apiUrl}/${editedProduct._id}`;
-      await useFetch.putData(updateUrl, editedProduct);
+      await putData(updateUrl, editedProduct); // Use putData from the hook instance
       revalidate();
       setIsEditing(false);
       toast.success("Продукт успешно обновлён");
@@ -106,8 +136,8 @@ const ProductsDashboard = () => {
   const handleDelete = async () => {
     if (!selectedProduct) return;
     try {
-      const deleteUrl = `${apiUrl}/${selectedProduct._id}`; // Fixed: Added "/"
-      await useFetch.deleteData(deleteUrl);
+      const deleteUrl = `${apiUrl}/${selectedProduct._id}`;
+      await deleteData(deleteUrl); // Use deleteData from the hook instance
       revalidate();
       setSelectedProduct(null);
       document.getElementById("product_modal").close();
@@ -119,11 +149,39 @@ const ProductsDashboard = () => {
 
   const shouldDisplayField = (key) => {
     const excludedFields = [
-      "_id", "createdAt", "updatedAt", "__v", "accession", "advantages",
-      "availability", "construction", "currency", "description", "mainImage",
-      "maxPressure", "minPressure", "rotationAngle", "serviceLife", "sizeInch",
-      "sizeMm", "standard", "surfaceMaterial", "swipeImages", "thickness",
-      "type", "views", "workEnv", "workingPressure", "workingTemperature",
+      "_id",
+      "createdAt",
+      "updatedAt",
+      "__v",
+      "accession",
+      "advantages",
+      "availability", // Fixed typo: "availabilitiy" should be "availability"
+      "construction",
+      "currency",
+      "description",
+      "mainImage",
+      "maxPressure",
+      "minPressure",
+      "rotationAngle",
+      "serviceLife",
+      "sizeInInch",
+      "sizeInmm",
+      "standard",
+      "surfaceMaterial",
+      "swiperImages",
+      "thickness",
+      "type",
+      "views",
+      "workEnv",
+      "workingPressure",
+      "workingTemperature",
+      "ordersCount",
+      "steelGrade",
+      "workEnvTemperature",
+      "nominalPressure",
+      "application",
+      "DN",
+      "SDR",
     ];
     return !excludedFields.includes(key);
   };

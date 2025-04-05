@@ -19,7 +19,8 @@ const useFetch = (baseUrl, options = {}, autoFetch = true) => {
         });
 
         if (!response.ok) {
-          throw new Error(`Ошибка: ${response.status} ${response.statusText}`);
+          const errorText = await response.text();
+          throw new Error(`Ошибка: ${response.status} ${response.statusText} - ${errorText}`);
         }
 
         const result = await response.json();
@@ -27,6 +28,7 @@ const useFetch = (baseUrl, options = {}, autoFetch = true) => {
         return result;
       } catch (err) {
         setError(err.message);
+        throw err; // Rethrow the error so the calling code can handle it
       } finally {
         setLoading(false);
       }
@@ -38,7 +40,7 @@ const useFetch = (baseUrl, options = {}, autoFetch = true) => {
     if (autoFetch) {
       fetchData(baseUrl);
     }
-  }, [baseUrl, autoFetch]);
+  }, [baseUrl, autoFetch, fetchData]);
 
   const revalidate = () => fetchData(baseUrl);
 
