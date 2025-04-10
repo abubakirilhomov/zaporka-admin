@@ -52,7 +52,7 @@ const Navbar = () => {
   return (
     <div className="flex justify-between w-full p-1 md:ml-6 md:mr-6 relative">
       <NavButton
-        title="Menu"
+        title="Menu"  
         customFunc={handleActiveMenu}
         icon={<AiOutlineMenu />}
       />

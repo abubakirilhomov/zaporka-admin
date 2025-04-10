@@ -20,15 +20,27 @@ export const ContextProvider = ({ children }) => {
   const [activeMenu, setActiveMenu] = useState(true);
   const [isClicked, setIsClicked] = useState(initialState);
 
+  // Apply Tailwind + DaisyUI theme logic
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', currentMode.toLowerCase());
+
+    if (currentMode === 'Dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
   }, [currentMode]);
 
-  // Updated setMode to accept a value directly instead of an event
   const setMode = (mode) => {
     setCurrentMode(mode);
     localStorage.setItem('themeMode', mode);
     document.documentElement.setAttribute('data-theme', mode.toLowerCase());
+
+    if (mode === 'Dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
   };
 
   const setColor = (color) => {

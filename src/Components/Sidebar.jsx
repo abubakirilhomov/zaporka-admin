@@ -1,8 +1,9 @@
 import React from "react";
 import { Link, NavLink } from "react-router-dom";
-import { SiShopware } from "react-icons/si";
 import { MdOutlineCancel } from "react-icons/md";
 import { TooltipComponent } from "@syncfusion/ej2-react-popups";
+
+import logodark from "./logodark.png"; // Импорт логотипа из src/Components
 
 import { useStateContext } from "../Contexts/ContextProvider";
 import { FiShoppingBag } from "react-icons/fi";
@@ -15,60 +16,30 @@ const Sidebar = () => {
   const links = [
     {
       title: "Dashboard",
-      links: [
-        {
-          name: "dashboard",
-          icon: <FiShoppingBag />,
-        },
-      ],
+      links: [{ name: "dashboard", icon: <FiShoppingBag /> }],
     },
     {
       title: "Orders",
-      links: [
-        {
-          name: "orders",
-          icon: <FiShoppingBag />,
-        },
-      ],
+      links: [{ name: "orders", icon: <FiShoppingBag /> }],
     },
     {
       title: "Users",
       links: [
-        {
-          name: "all-users",
-          icon: <IoMdContacts />,
-        },
-        {
-          name: "customers",
-          icon: <AiOutlineShoppingCart />,
-        },
-        {
-          name: "workers",
-          icon: <RiContactsLine />,
-        },
+        { name: "all-users", icon: <IoMdContacts /> },
+        { name: "customers", icon: <AiOutlineShoppingCart /> },
+        { name: "workers", icon: <RiContactsLine /> },
       ],
     },
     {
       title: "Products",
       links: [
-        {
-          name: "products-dashboard",
-          icon: <AiOutlineCalendar />,
-        },
-        {
-          name: "create-products",
-          icon: <BsKanban />,
-        },
+        { name: "products-dashboard", icon: <AiOutlineCalendar /> },
+        { name: "create-products", icon: <BsKanban /> },
       ],
     },
     {
       title: "Reviews",
-      links: [
-        {
-          name: "reviews",
-          icon: <AiOutlineStock />,
-        },
-      ],
+      links: [{ name: "reviews", icon: <AiOutlineStock /> }],
     },
   ];
 
@@ -89,6 +60,7 @@ const Sidebar = () => {
     <div className="ml-3 h-screen overflow-auto md:overflow-auto pb-10 bg-base-100">
       {activeMenu && (
         <>
+          {/* ЛОГОТИП */}
           <div className="flex justify-between items-center">
             <Link
               to="/"
@@ -96,9 +68,14 @@ const Sidebar = () => {
               className="items-center gap-3 ml-3 mt-4 flex text-xl font-extrabold tracking-tight text-base-content"
             >
               <div className="max-w-[60%]">
-                <img src="/images/logo.png" alt="zaporka" />
+                <img
+                  src={logodark}
+                  alt="zaporka"
+                  className="w-full object-contain"
+                />
               </div>
             </Link>
+
             <TooltipComponent content="Menu" position="BottomCenter">
               <button
                 type="button"
@@ -109,6 +86,8 @@ const Sidebar = () => {
               </button>
             </TooltipComponent>
           </div>
+
+          {/* ССЫЛКИ */}
           <div className="mt-10">
             {links.map((item) => (
               <div key={item.title}>
