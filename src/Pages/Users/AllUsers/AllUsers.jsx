@@ -130,10 +130,11 @@ const AllUsers = () => {
         method: "PUT",
         body: JSON.stringify({ username: newUsername, password: newPassword || undefined }),
       });
+      toast.success("Пользователь успешно обновлен!");
       await fetchUsers();
       closeModal();
     } catch (err) {
-      setError(err.message);
+      toast.error(`Ошибка редактирования: ${err.message}`);
     } finally {
       setModalState((prev) => ({ ...prev, isActionLoading: false }));
     }
@@ -147,10 +148,11 @@ const AllUsers = () => {
       await apiRequest(`https://zaporka-backend.onrender.com/api/v1/users/${selectedUser._id}`, {
         method: "DELETE",
       });
+      toast.success("Пользователь успешно удален!");
       await fetchUsers();
       closeModal();
     } catch (err) {
-      setError(err.message);
+      toast.error(`Ошибка удаления: ${err.message}`);
     } finally {
       setModalState((prev) => ({ ...prev, isActionLoading: false }));
     }
@@ -174,14 +176,25 @@ const AllUsers = () => {
     return result;
   }, [data, searchTerm, sortedBy]);
 
+  const paginatedUsers = useMemo(() => {
+    const startIndex = (currentPage - 1) * usersPerPage;
+    const endIndex = startIndex + usersPerPage;
+    return filteredAndSortedUsers.slice(startIndex, endIndex);
+  }, [filteredAndSortedUsers, currentPage, usersPerPage]);
+
   if (loading) return <Loading />;
   if (error) {
     return (
-      <div className="text-center py-10">
-        <p className="text-error text-lg mb-4">Ошибка: {error}</p>
-        <button className="btn btn-primary" onClick={fetchUsers}>
+      <div className="flex flex-col items-center justify-center min-h-screen bg-base-100">
+        <p className="text-error text-lg mb-6 font-medium">Ошибка: {error}</p>
+        <motion.button
+          className="btn btn-primary"
+          onClick={fetchUsers}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
           Попробовать снова
-        </button>
+        </motion.button>
       </div>
     );
   }
@@ -191,93 +204,92 @@ const AllUsers = () => {
       key: "number",
       label: "№",
       sortable: false,
-      render: (_, index) => (currentPage - 1) * usersPerPage + index + 1,
+      render: (_, __, index) => (currentPage - 1) * usersPerPage + index + 1,
     },
     { key: "username", label: "Имя пользователя", sortable: true },
+  ];
+
+  const actions = [
     {
-      key: "actions",
-      label: "Действия",
-      render: (user) => (
-        <div className="flex gap-2 justify-center">
-          <button
-            className="btn btn-ghost btn-xs tooltip tooltip-primary"
-            data-tip="Изменить"
-            onClick={() => openEditModal(user)}
-            disabled={!user?._id}
-          >
-            <FiEdit size={14} />
-          </button>
-          <button
-            className="btn btn-ghost btn-xs tooltip tooltip-error"
-            data-tip="Удалить"
-            onClick={() => openDeleteModal(user)}
-            disabled={!user?._id}
-          >
-            <FiTrash2 size={14} />
-          </button>
-        </div>
-      ),
+      icon: <FiEdit className="text-info" />,
+      onClick: (user) => openEditModal(user),
+      className: "btn btn-ghost btn-sm tooltip tooltip-info",
+    },
+    {
+      icon: <FiTrash2 className="text-error" />,
+      onClick: (user) => openDeleteModal(user),
+      className: "btn btn-ghost btn-sm tooltip tooltip-error",
     },
   ];
 
   return (
-    <div className="w-full min-h-screen flex flex-col p-2 sm:p-4 md:p-6 lg:p-8 bg-base-100 shadow-lg rounded-lg">
-      <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-center mb-4 md:mb-6 text-base-content flex items-center justify-center">
-        <FiUsers className="mr-2 text-primary" size={24} /> Все пользователи
-      </h2>
+    <div className="container mx-auto min-h-screen p-4 md:p-6 bg-base-100 rounded-xl shadow-xl">
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex items-center justify-between mb-6"
+      >
+        <h2 className="text-2xl md:text-3xl font-bold text-base-content flex items-center">
+          <FiUsers className="mr-2 text-primary" size={28} /> Все пользователи
+        </h2>
+      </motion.div>
 
-      <div className="flex flex-col sm:flex-row justify-between w-full mb-4 items-center gap-4">
-        <div className="relative w-full sm:w-1/2 md:w-1/3">
-          <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" size={16} />
-          <input
-            type="text"
-            placeholder="Поиск..."
-            className="input input-bordered w-full pl-10 text-sm focus:ring focus:ring-primary"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-          <select
-            className="select select-bordered text-sm w-full sm:w-auto"
-            value={usersPerPage}
-            onChange={(e) => setUsersPerPage(Number(e.target.value))}
-          >
-            <option value={5}>5</option>
-            <option value={10}>10</option>
-            <option value={20}>20</option>
-          </select>
-          <motion.button
-            className="btn btn-primary btn-sm flex items-center w-full sm:w-auto"
-            onClick={openAddModal}
-            initial={{ scale: 1 }}
-            whileTap={{ scale: 0.9 }}
-          >
-            <FiUserPlus size={14} className="mr-1" /> Добавить
-          </motion.button>
-          <motion.button
-            className="btn btn-primary btn-sm flex items-center w-full sm:w-auto"
-            onClick={handleRefresh}
-            initial={{ scale: 1 }}
-            whileTap={{ scale: 0.9 }}
-            animate={isRefreshing ? { y: [-3, 3, -3] } : {}}
-            transition={{ duration: 0.4, repeat: isRefreshing ? Infinity : 0, repeatType: "mirror" }}
-          >
-            <FiRefreshCcw size={14} className="mr-1" /> Обновить
-          </motion.button>
+      <div className="card bg-base-200 p-4 mb-6 shadow-md">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="relative w-full md:w-1/3">
+            <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-base-content/60" size={18} />
+            <input
+              type="text"
+              placeholder="Поиск"
+              className="input input-bordered w-full pl-10 pr-4 py-2 focus:ring-2 focus:ring-primary transition-all duration-200"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <div className="flex items-center gap-3">
+            <select
+              className="select select-bordered w-full md:w-auto focus:outline-none focus:ring-2 focus:ring-primary"
+              value={usersPerPage}
+              onChange={(e) => setUsersPerPage(Number(e.target.value))}
+            >
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+            </select>
+            <motion.button
+              className="btn btn-primary flex items-center gap-2"
+              onClick={openAddModal}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <FiUserPlus size={16} /> Добавить
+            </motion.button>
+            <motion.button
+              className="btn btn-outline flex items-center gap-2"
+              onClick={handleRefresh}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              animate={isRefreshing ? { rotate: 360 } : {}}
+              transition={{ duration: 0.5 }}
+            >
+              <FiRefreshCcw size={16} /> Обновить
+            </motion.button>
+          </div>
         </div>
       </div>
 
-      <div className="w-full overflow-x-auto">
+      <div className="card bg-base-200 shadow-md overflow-x-auto">
         <CustomTable
-          data={filteredAndSortedUsers}
+          data={paginatedUsers}
           columns={columns}
+          actions={actions}
           emptyMessage="Пользователи не найдены"
           onSort={setSortedBy}
+          className="w-full"
         />
       </div>
 
-      <div className="mt-4 flex justify-center">
+      <div className="mt-6 flex justify-center">
         <CustomPagination
           currentPage={currentPage}
           totalPages={Math.ceil(filteredAndSortedUsers.length / usersPerPage)}
@@ -285,19 +297,23 @@ const AllUsers = () => {
         />
       </div>
 
-      {/* Модалка для добавления пользователя */}
+      {/* Add User Modal */}
       {modalState.isAddOpen && (
         <div className="modal modal-open">
-          <div className="modal-box w-11/12 max-w-md">
-            <h3 className="font-bold text-lg">Добавить пользователя</h3>
-            <div className="py-4 space-y-4">
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="modal-box w-11/12 max-w-md bg-base-100 shadow-xl"
+          >
+            <h3 className="font-bold text-xl mb-4">Добавить пользователя</h3>
+            <div className="space-y-4">
               <div className="form-control">
                 <label className="label">
-                  <span className="label-text">Имя пользователя</span>
+                  <span className="label-text font-medium">Имя пользователя</span>
                 </label>
                 <input
                   type="text"
-                  className="input input-bordered w-full"
+                  className="input input-bordered w-full focus:ring-2 focus:ring-primary"
                   value={modalState.newUsername}
                   onChange={(e) => setModalState((prev) => ({ ...prev, newUsername: e.target.value }))}
                   disabled={modalState.isActionLoading}
@@ -305,50 +321,58 @@ const AllUsers = () => {
               </div>
               <div className="form-control">
                 <label className="label">
-                  <span className="label-text">Пароль</span>
+                  <span className="label-text font-medium">Пароль</span>
                 </label>
                 <input
                   type="password"
-                  className="input input-bordered w-full"
+                  className="input input-bordered w-full focus:ring-2 focus:ring-primary"
                   value={modalState.newPassword}
-                  onChange={(e) => setModalState((prev) => ({ ...prev, newPassword: e.target.value }))}
+                  onChange={(e) => setModalState((prev) => ({ ...prev, newPassword: e.target.value } ))}
                   disabled={modalState.isActionLoading}
                 />
               </div>
             </div>
-            <div className="modal-action flex justify-end gap-2">
-              <button
-                className="btn btn-primary btn-sm"
+            <div className="modal-action mt-6 flex justify-end gap-3">
+              <motion.button
+                className="btn btn-primary"
                 onClick={handleAddUser}
                 disabled={modalState.isActionLoading}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
                 {modalState.isActionLoading ? <span className="loading loading-spinner" /> : "Добавить"}
-              </button>
-              <button
-                className="btn btn-sm"
+              </motion.button>
+              <motion.button
+                className="btn btn-ghost"
                 onClick={closeModal}
                 disabled={modalState.isActionLoading}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
                 Отмена
-              </button>
+              </motion.button>
             </div>
-          </div>
+          </motion.div>
         </div>
       )}
 
-      {/* Модалка для редактирования */}
+      {/* Edit User Modal */}
       {modalState.isEditOpen && modalState.selectedUser && (
         <div className="modal modal-open">
-          <div className="modal-box w-11/12 max-w-md">
-            <h3 className="font-bold text-lg">Изменить пользователя</h3>
-            <div className="py-4 space-y-4">
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="modal-box w-11/12 max-w-md bg-base-100 shadow-xl"
+          >
+            <h3 className="font-bold text-xl mb-4">Изменить пользователя</h3>
+            <div className="space-y-4">
               <div className="form-control">
                 <label className="label">
-                  <span className="label-text">Новое имя пользователя</span>
+                  <span className="label-text font-medium">Новое имя пользователя</span>
                 </label>
                 <input
                   type="text"
-                  className="input input-bordered w-full"
+                  className="input input-bordered w-full focus:ring-2 focus:ring-primary"
                   value={modalState.newUsername}
                   onChange={(e) => setModalState((prev) => ({ ...prev, newUsername: e.target.value }))}
                   disabled={modalState.isActionLoading}
@@ -356,61 +380,73 @@ const AllUsers = () => {
               </div>
               <div className="form-control">
                 <label className="label">
-                  <span className="label-text">Новый пароль (опционально)</span>
+                  <span className="label-text font-medium">Новый пароль (опционально)</span>
                 </label>
                 <input
                   type="password"
-                  className="input input-bordered w-full"
+                  className="input input-bordered w-full focus:ring-2 focus:ring-primary"
                   value={modalState.newPassword}
                   onChange={(e) => setModalState((prev) => ({ ...prev, newPassword: e.target.value }))}
                   disabled={modalState.isActionLoading}
                 />
               </div>
             </div>
-            <div className="modal-action flex justify-end gap-2">
-              <button
-                className="btn btn-primary btn-sm"
+            <div className="modal-action mt-6 flex justify-end gap-3">
+              <motion.button
+                className="btn btn-primary"
                 onClick={handleEditUser}
                 disabled={modalState.isActionLoading}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
                 {modalState.isActionLoading ? <span className="loading loading-spinner" /> : "Сохранить"}
-              </button>
-              <button
-                className="btn btn-sm"
+              </motion.button>
+              <motion.button
+                className="btn btn-ghost"
                 onClick={closeModal}
                 disabled={modalState.isActionLoading}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
                 Отмена
-              </button>
+              </motion.button>
             </div>
-          </div>
+          </motion.div>
         </div>
       )}
 
-      {/* Модалка для удаления */}
+      {/* Delete User Modal */}
       {modalState.isDeleteOpen && modalState.selectedUser && (
         <div className="modal modal-open">
-          <div className="modal-box w-11/12 max-w-sm">
-            <h3 className="font-bold text-lg">Удаление пользователя</h3>
-            <p className="py-4">Вы действительно хотите удалить пользователя?</p>
-            <div className="modal-action flex justify-end gap-2">
-              <button
-                className="btn btn-error btn-sm"
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="modal-box w-11/12 max-w-sm bg-base-100 shadow-xl"
+          >
+            <h3 className="font-bold text-xl mb-4">Удаление пользователя</h3>
+            <p className="py-2 text-base-content/80">Вы действительно хотите удалить пользователя <span className="font-medium">{modalState.selectedUser.username}</span>?</p>
+            <div className="modal-action mt-6 flex justify-end gap-3">
+              <motion.button
+                className="btn btn-error"
                 onClick={handleDeleteUser}
                 disabled={modalState.isActionLoading}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
-                {modalState.isActionLoading ? <span className="loading loading-spinner" /> : "Да, удалить"}
-              </button>
-              <button
-                className="btn btn-sm"
+                {modalState.isActionLoading ? <span className="loading loading-spinner" /> : "Удалить"}
+              </motion.button>
+              <motion.button
+                className="btn btn-ghost"
                 onClick={closeModal}
                 disabled={modalState.isActionLoading}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
                 Отмена
-              </button>
+              </motion.button>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </div> 
       )}
     </div>
   );

@@ -1,6 +1,6 @@
 import React from "react";
 
-const CustomTable = ({ data, columns, emptyMessage, onSort }) => {
+const CustomTable = ({ data, columns, emptyMessage, onSort, onRowClick, actions, currentPage, usersPerPage }) => {
   const handleSort = (key) => {
     if (onSort) {
       onSort(key);
@@ -23,22 +23,45 @@ const CustomTable = ({ data, columns, emptyMessage, onSort }) => {
                 )}
               </th>
             ))}
+            {actions && <th>Действия</th>}
           </tr>
         </thead>
         <tbody>
           {data.length > 0 ? (
             data.map((row, index) => (
-              <tr key={row._id || index}>
+              <tr
+                key={row._id || index}
+                onClick={() => onRowClick && onRowClick(row)}
+                className="cursor-pointer hover:bg-base-200"
+              >
                 {columns.map((column) => (
                   <td key={column.key}>
-                    {column.render ? column.render(row, index) : row[column.key]}
+                    {column.render
+                      ? column.render(row[column.key], row, index, { currentPage, usersPerPage }) // Pass all args + context
+                      : row[column.key] || "Н/Д"}
                   </td>
                 ))}
+                {actions && (
+                  <td>
+                    {actions.map((action, idx) => (
+                      <button
+                        key={idx}
+                        className={`btn ${action.className}`}
+                        onClick={(e) => {
+                          e.stopPropagation(); // Prevent row click
+                          action.onClick(row);
+                        }}
+                      >
+                        {action.icon} {action.label}
+                      </button>
+                    ))}
+                  </td>
+                )}
               </tr>
             ))
           ) : (
             <tr>
-              <td colSpan={columns.length} className="text-center">
+              <td colSpan={columns.length + (actions ? 1 : 0)} className="text-center">
                 {emptyMessage}
               </td>
             </tr>

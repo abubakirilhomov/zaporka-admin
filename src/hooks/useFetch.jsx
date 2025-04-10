@@ -19,7 +19,8 @@ const useFetch = (baseUrl, options = {}, autoFetch = true) => {
         });
 
         if (!response.ok) {
-          throw new Error(`Ошибка: ${response.status} ${response.statusText}`);
+          const errorText = await response.text();
+          throw new Error(`Ошибка: ${response.status} ${response.statusText} - ${errorText}`);
         }
 
         const result = await response.json();
@@ -27,19 +28,19 @@ const useFetch = (baseUrl, options = {}, autoFetch = true) => {
         return result;
       } catch (err) {
         setError(err.message);
+        throw err; // Rethrow the error so the calling code can handle it
       } finally {
         setLoading(false);
       }
     },
-    [options] // Убрали url из зависимостей, так как теперь используем динамический url
+    [options]
   );
 
   useEffect(() => {
     if (autoFetch) {
       fetchData(baseUrl);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [baseUrl, autoFetch]);
+  }, [baseUrl, autoFetch, fetchData]);
 
   const revalidate = () => fetchData(baseUrl);
 
