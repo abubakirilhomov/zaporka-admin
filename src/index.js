@@ -20,8 +20,10 @@ import Customers from "./Pages/Users/Customers/Customers";
 import Workers from "./Pages/Users/Workers/Workers";
 import Login from "./Pages/Login/Login";
 import ProtectedRoute from "./hooks/PrivateRoute";
+import Settings from "../src/Components/Settings";
 
-// Define your routes
+
+// Определение маршрутов
 const router = createBrowserRouter([
   {
     path: "/",
@@ -99,15 +101,23 @@ const router = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
+      {
+        path: "settings",
+        element: (
+          <ProtectedRoute>
+            <Settings />
+          </ProtectedRoute>
+        ),
+      },
     ],
-  },
-  {
-    path: "*",
-    element: <h1>Page not found</h1>,
   },
   {
     path: "login",
     element: <Login />,
+  },
+  {
+    path: "*",
+    element: <h1>Page not found</h1>,
   },
 ]);
 
