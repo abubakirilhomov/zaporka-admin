@@ -58,7 +58,6 @@ const Login = () => {
     }
   };
 
-  // Framer Motion variants
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
