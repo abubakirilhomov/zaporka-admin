@@ -12,6 +12,8 @@ import { RiContactsLine } from "react-icons/ri";
 import { BsKanban } from "react-icons/bs";
 
 const Sidebar = () => {
+  const { activeMenu, setActiveMenu, screenSize, currentMode } = useStateContext();
+
   const links = [
     {
       title: "Dashboard",
@@ -72,8 +74,6 @@ const Sidebar = () => {
     },
   ];
 
-  const { activeMenu, setActiveMenu, screenSize } = useStateContext();
-
   const handleCloseSidebar = () => {
     if (activeMenu && screenSize <= 900) {
       setActiveMenu(false);
@@ -96,7 +96,10 @@ const Sidebar = () => {
               className="items-center gap-3 ml-3 mt-4 flex text-xl font-extrabold tracking-tight text-base-content"
             >
               <div className="max-w-[60%]">
-                <img src="/images/logo.png" alt="zaporka" />
+                <img
+                  src={currentMode === "Dark" ? "/images/logodark.png" : "/images/logo.png"}
+                  alt="zaporka"
+                />
               </div>
             </Link>
             <TooltipComponent content="Menu" position="BottomCenter">
