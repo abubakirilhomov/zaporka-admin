@@ -1,27 +1,35 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import useFetch from '../../hooks/useFetch';
 import CustomTable from '../../Components/CustomTable/CustomTable';
 import { MdOutlinePlaylistAdd } from 'react-icons/md';
-import Loading from '../../Components/Loading/Loading';
 
-const OrdersDashboard = () => {
-  const apiUrl = `${process.env.REACT_APP_API_URL}/api/v1/`;
-  const { data, loading, error, revalidate } = useFetch(apiUrl, {}, false);
+const Orders = () => {
+  const apiUrl = `${process.env.REACT_APP_API_URL}/api/v1/orders`;
+  const token = localStorage.getItem('token');
+  console.log(token);
+  
+  const headers = {
+    Authorization: `Bearer ${token}`,
+  };
 
-  useEffect(() => {
-    revalidate();
-  }, []);
-
-  if (loading) return <Loading/>;
-  if (error) return <div className="text-error text-center py-4">Ошибка: {error}</div>;
-
-  const orders = Array.isArray(data) ? data : [];
+  const { data } = useFetch(apiUrl, { headers }, true);
+  const orders = Array.isArray(data) ? data.map((order) => ({
+    ...order,
+    total: order.total || 0,  
+  })) : [];
+  
+  
 
   const columns = [
     { key: 'orderId', label: 'Номер заказа' },
     { key: 'customerName', label: 'Имя клиента' },
-    { key: 'total', label: 'Сумма', render: (value) => `${value} UZS` },
+    {
+      key: 'total',
+      label: 'Сумма',
+      render: (value) => (value ? `${value} UZS` : '0 UZS'),
+    },
   ];
+  
 
   const actions = [
     {
@@ -45,4 +53,4 @@ const OrdersDashboard = () => {
   );
 };
 
-export default OrdersDashboard;
+export default Orders;
