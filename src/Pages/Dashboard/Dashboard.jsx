@@ -37,7 +37,6 @@ const Dashboard = () => {
   const store = useSelector((state) => state);
   console.log(store);
 
-  // Animation variants
   const containerVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: {
@@ -52,12 +51,11 @@ const Dashboard = () => {
     visible: { opacity: 1, scale: 1, transition: { duration: 0.4, ease: "easeOut" } },
   };
 
-  // Chart data and options
   const barData = {
-    labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
+    labels: ["Янв", "Фев", "Мар", "Апр", "Май", "Июн"],
     datasets: [
       {
-        label: "Sales",
+        label: "Продажи",
         data: [12, 19, 3, 5, 2, 3],
         backgroundColor: "rgba(75, 192, 192, 0.6)",
         borderColor: "rgba(75, 192, 192, 1)",
@@ -67,10 +65,10 @@ const Dashboard = () => {
   };
 
   const lineData = {
-    labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+    labels: ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"],
     datasets: [
       {
-        label: "Users",
+        label: "Пользователи",
         data: [65, 59, 80, 81, 56, 55, 40],
         fill: false,
         borderColor: "rgba(255, 99, 132, 1)",
@@ -80,10 +78,10 @@ const Dashboard = () => {
   };
 
   const pieData = {
-    labels: ["Red", "Blue", "Yellow"],
+    labels: ["Красный", "Синий", "Жёлтый"],
     datasets: [
       {
-        label: "Categories",
+        label: "Категории",
         data: [300, 50, 100],
         backgroundColor: [
           "rgba(255, 99, 132, 0.6)",
@@ -106,7 +104,7 @@ const Dashboard = () => {
     plugins: {
       legend: {
         position: "top",
-        labels: { color: "#e5e7eb" }, // Adjust for theme if needed
+        labels: { color: "#e5e7eb" },
       },
       title: {
         display: true,
@@ -127,62 +125,62 @@ const Dashboard = () => {
         initial="hidden"
         animate="visible"
       >
-        {/* Welcome Message */}
+        {/* Приветствие */}
         <motion.div variants={itemVariants}>
           <h1 className="text-5xl font-bold text-center">
-            Welcome{" "}
+            Добро пожаловать,{" "}
             <span className="">
-              {user || "Guest"}
+              {user || "Гость"}
             </span>
           </h1>
         </motion.div>
 
-        {/* Charts Grid */}
+        {/* Сетка с графиками */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Bar Chart */}
+          {/* Гистограмма */}
           <motion.div
             className="card bg-base-100 shadow-xl p-4 h-96"
             variants={itemVariants}
           >
             <h2 className="text-xl font-semibold text-base-content mb-4">
-              Monthly Sales
+              Продажи по месяцам
             </h2>
             <div className="relative h-full">
               <Bar
                 data={barData}
-                options={{ ...chartOptions, title: { text: "Monthly Sales" } }}
+                options={{ ...chartOptions, title: { text: "Продажи по месяцам" } }}
               />
             </div>
           </motion.div>
 
-          {/* Line Chart */}
+          {/* Линейный график */}
           <motion.div
             className="card bg-base-100 shadow-xl p-4 h-96"
             variants={itemVariants}
           >
             <h2 className="text-xl font-semibold text-base-content mb-4">
-              Weekly Users
+              Пользователи за неделю
             </h2>
             <div className="relative h-full">
               <Line
                 data={lineData}
-                options={{ ...chartOptions, title: { text: "Weekly Users" } }}
+                options={{ ...chartOptions, title: { text: "Пользователи за неделю" } }}
               />
             </div>
           </motion.div>
 
-          {/* Pie Chart */}
+          {/* Круговая диаграмма */}
           <motion.div
             className="card bg-base-100 shadow-xl p-4 h-96"
             variants={itemVariants}
           >
             <h2 className="text-xl font-semibold text-base-content mb-4">
-              Product Categories
+              Категории продуктов
             </h2>
             <div className="relative h-full">
               <Pie
                 data={pieData}
-                options={{ ...chartOptions, title: { text: "Product Categories" } }}
+                options={{ ...chartOptions, title: { text: "Категории продуктов" } }}
               />
             </div>
           </motion.div>
