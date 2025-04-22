@@ -54,7 +54,7 @@ const useFetch = (baseUrl, options = {}, autoFetch = true) => {
       headers: { "Content-Type": "application/json", ...options.headers },
       body: JSON.stringify(body),
     });
-
+  
   const putData = async (url, body) =>
     fetchData(url, {
       method: "PUT",
@@ -67,7 +67,6 @@ const useFetch = (baseUrl, options = {}, autoFetch = true) => {
       method: "DELETE",
       headers: options.headers,
     });
-
   return { data, loading, error, revalidate, postData, putData, deleteData };
 };
 

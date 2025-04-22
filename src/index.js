@@ -102,7 +102,7 @@ const router = createBrowserRouter([
         ),
       },
       {
-        path: "inventory",
+        path: "stock",
         element: (
           <ProtectedRoute>
             <Inventory/>
@@ -110,7 +110,7 @@ const router = createBrowserRouter([
         ),
       },
       {
-        path: "add-stock",
+        path: "add-invoice",
         element: (
           <ProtectedRoute>
             <AddInvoice/>

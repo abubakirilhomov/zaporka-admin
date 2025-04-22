@@ -1,196 +1,212 @@
-  import React, { useEffect, useState } from "react";
-  import useFetch from "../../../hooks/useFetch";
-  import { toast } from "react-toastify";
-  import {
-    MdEdit,
-    MdDelete,
-    MdOutlinePlaylistAdd,
-    MdSave,
-    MdClose,
-    MdOutlineStore,
-  } from "react-icons/md";
-  import CustomTable from "../../../Components/CustomTable/CustomTable";
-  import Loading from "../../../Components/Loading/Loading";
-  import CustomPagination from "../../../Components/CustomPagination/CustomPagination";
+import React, { useEffect, useState } from "react";
+import useFetch from "../../../hooks/useFetch";
+import { toast } from "react-toastify";
+import {
+  MdEdit,
+  MdDelete,
+  MdOutlinePlaylistAdd,
+  MdSave,
+  MdClose,
+  MdOutlineStore,
+} from "react-icons/md";
+import CustomTable from "../../../Components/CustomTable/CustomTable";
+import Loading from "../../../Components/Loading/Loading";
+import CustomPagination from "../../../Components/CustomPagination/CustomPagination";
 
-  const ProductsDashboard = () => {
-    const apiUrl = `${process.env.REACT_APP_API_URL}/api/v1/products`;
-    const [currentPage, setCurrentPage] = useState(1);
-    const [totalPages, setTotalPages] = useState(1);
-    const limit = 10;
+const ProductsDashboard = () => {
+  const apiUrl = `${process.env.REACT_APP_API_URL}/api/v1/products`;
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const limit = 10;
 
-    // Include pagination parameters in the fetch URL
-    const fetchUrl = `${apiUrl}?page=${currentPage}&limit=${limit}`;
-    const { data, loading, error, revalidate, putData, deleteData } = useFetch(fetchUrl, {}, false);
-    const [selectedProduct, setSelectedProduct] = useState(null);
-    const [isEditing, setIsEditing] = useState(false);
-    const [editedProduct, setEditedProduct] = useState(null);
+  // Include pagination parameters in the fetch URL
+  const fetchUrl = `${apiUrl}?page=${currentPage}&limit=${limit}`;
+  const { data, loading, error, revalidate, putData, deleteData } = useFetch(
+    fetchUrl,
+    {},
+    false
+  );
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedProduct, setEditedProduct] = useState(null);
 
-    // Debug logging
-    console.log("Raw API data:", data);
+  // Debug logging
+  console.log("Raw API data:", data);
 
-    useEffect(() => {
-      revalidate();
-    }, [currentPage]);
+  useEffect(() => {
+    revalidate();
+  }, [currentPage]);
 
-    useEffect(() => {
-      if (data) {
-        console.log("Received data:", data); // Debug the structure
-        // Check if the response is a paginated object or a flat array
-        const products = Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : [];
-        const total = data?.total || products.length; // Use total if provided, otherwise use array length
-        setTotalPages(Math.ceil(total / limit));
-      }
-    }, [data, limit]);
+  useEffect(() => {
+    if (data) {
+      console.log("Received data:", data); // Debug the structure
+      // Check if the response is a paginated object or a flat array
+      const products = Array.isArray(data?.data)
+        ? data.data
+        : Array.isArray(data)
+        ? data
+        : [];
+      const total = data?.total || products.length; // Use total if provided, otherwise use array length
+      setTotalPages(Math.ceil(total / limit));
+    }
+  }, [data, limit]);
 
-    if (loading) return <Loading />;
-    if (error) return <div className="text-error text-center py-4">Ошибка: {error}</div>;
+  if (loading) return <Loading />;
+  if (error)
+    return <div className="text-error text-center py-4">Ошибка: {error}</div>;
 
-    // Ensure products is always an array
-    const products = Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : [];
-    console.log("Processed products:", products); // Debug the final array
+  // Ensure products is always an array
+  const products = Array.isArray(data?.data)
+    ? data.data
+    : Array.isArray(data)
+    ? data
+    : [];
+  console.log("Processed products:", products); // Debug the final array
 
-    // Define important fields for the table
-    const importantFields = [
-      { key: "title", label: "Название" },
-      { key: "stock", label: "Запас" },
-      { key: "price", label: "Цена" },
-      { key: "manufacturer", label: "Производитель" },
-      { key: "material", label: "Материал" },
-      { key: "model", label: "Модель" },
-    ];
+  // Define important fields for the table
+  const importantFields = [
+    { key: "title", label: "Название" },
+    { key: "stock", label: "Запас" },
+    { key: "price", label: "Цена" },
+    { key: "manufacturer", label: "Производитель" },
+    { key: "material", label: "Материал" },
+    { key: "model", label: "Модель" },
+  ];
 
-    // Map fields to columns with a render function for formatting
-    const columns = importantFields.map((field) => ({
-      key: field.key,
-      label: field.label,
-      render: (value) =>
-        value === undefined || value === null
-          ? "Н/Д"
-          : Array.isArray(value)
-          ? value.join(", ")
-          : value.toString(),
+  // Map fields to columns with a render function for formatting
+  const columns = importantFields.map((field) => ({
+    key: field.key,
+    label: field.label,
+    render: (value) =>
+      value === undefined || value === null
+        ? "Н/Д"
+        : Array.isArray(value)
+        ? value.join(", ")
+        : value.toString(),
+  }));
+
+  const actions = [
+    {
+      label: "Просмотреть детали",
+      icon: <MdOutlinePlaylistAdd />,
+      onClick: (product) => openModal(product),
+      className: "btn-primary",
+    },
+  ];
+
+  const openModal = (product) => {
+    setSelectedProduct(product);
+    setEditedProduct({ ...product });
+    setIsEditing(false);
+    document.getElementById("product_modal").showModal();
+  };
+
+  const handleEditToggle = () => {
+    setIsEditing(!isEditing);
+    if (!isEditing) setEditedProduct({ ...selectedProduct });
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    // Handle array fields by splitting the input string
+    const isArrayField = [
+      "price",
+      "sizeInInch",
+      "sizeInmm",
+      "DN",
+      "type",
+      "surfaceMaterial",
+      "workEnv",
+      "nominalPressure",
+      "workingPressure",
+      "minPressure",
+      "maxPressure",
+      "application",
+      "advantages",
+      "swiperImages",
+    ].includes(name);
+
+    setEditedProduct((prev) => ({
+      ...prev,
+      [name]: isArrayField
+        ? value.split(",").map((item) => item.trim())
+        : value,
     }));
+  };
 
-    const actions = [
-      {
-        label: "Просмотреть детали",
-        icon: <MdOutlinePlaylistAdd />,
-        onClick: (product) => openModal(product),
-        className: "btn-primary",
-      },
-    ];
-
-    const openModal = (product) => {
-      setSelectedProduct(product);
-      setEditedProduct({ ...product });
+  const handleSave = async () => {
+    if (!editedProduct || !editedProduct._id) return;
+    try {
+      const updateUrl = `${apiUrl}/${editedProduct._id}`;
+      await putData(updateUrl, editedProduct); // Use putData from the hook instance
+      revalidate();
       setIsEditing(false);
-      document.getElementById("product_modal").showModal();
-    };
+      toast.success("Продукт успешно обновлён");
+      document.getElementById("product_modal").close();
+    } catch (err) {
+      toast.error("Ошибка при обновлении продукта: " + err.message);
+    }
+  };
 
-    const handleEditToggle = () => {
-      setIsEditing(!isEditing);
-      if (!isEditing) setEditedProduct({ ...selectedProduct });
-    };
+  const handleDelete = async () => {
+    if (!selectedProduct) return;
+    try {
+      const deleteUrl = `${apiUrl}/${selectedProduct._id}`;
+      await deleteData(deleteUrl); // Use deleteData from the hook instance
+      revalidate();
+      setSelectedProduct(null);
+      document.getElementById("product_modal").close();
+      toast.success("Продукт успешно удалён");
+    } catch (err) {
+      toast.error("Ошибка при удалении продукта: " + err.message);
+    }
+  };
 
-    const handleInputChange = (e) => {
-      const { name, value } = e.target;
-      // Handle array fields by splitting the input string
-      const isArrayField = [
-        "price",
-        "sizeInInch",
-        "sizeInmm",
-        "DN",
-        "type",
-        "surfaceMaterial",
-        "workEnv",
-        "nominalPressure",
-        "workingPressure",
-        "minPressure",
-        "maxPressure",
-        "application",
-        "advantages",
-        "swiperImages",
-      ].includes(name);
+  const shouldDisplayField = (key) => {
+    const excludedFields = [
+      "_id",
+      "createdAt",
+      "updatedAt",
+      "__v",
+      "accession",
+      "advantages",
+      "availability", // Fixed typo: "availabilitiy" should be "availability"
+      "construction",
+      "currency",
+      "description",
+      "mainImage",
+      "maxPressure",
+      "minPressure",
+      "rotationAngle",
+      "serviceLife",
+      "sizeInInch",
+      "sizeInmm",
+      "standard",
+      "surfaceMaterial",
+      "swiperImages",
+      "thickness",
+      "type",
+      "views",
+      "workEnv",
+      "workingPressure",
+      "workingTemperature",
+      "ordersCount",
+      "steelGrade",
+      "workEnvTemperature",
+      "nominalPressure",
+      "application",
+      "DN",
+      "SDR",
+    ];
+    return !excludedFields.includes(key);
+  };
 
-      setEditedProduct((prev) => ({
-        ...prev,
-        [name]: isArrayField ? value.split(",").map((item) => item.trim()) : value,
-      }));
-    };
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
 
-    const handleSave = async () => {
-      if (!editedProduct || !editedProduct._id) return;
-      try {
-        const updateUrl = `${apiUrl}/${editedProduct._id}`;
-        await putData(updateUrl, editedProduct); // Use putData from the hook instance
-        revalidate();
-        setIsEditing(false);
-        toast.success("Продукт успешно обновлён");
-        document.getElementById("product_modal").close();
-      } catch (err) {
-        toast.error("Ошибка при обновлении продукта: " + err.message);
-      }
-    };
-
-    const handleDelete = async () => {
-      if (!selectedProduct) return;
-      try {
-        const deleteUrl = `${apiUrl}/${selectedProduct._id}`;
-        await deleteData(deleteUrl); // Use deleteData from the hook instance
-        revalidate();
-        setSelectedProduct(null);
-        document.getElementById("product_modal").close();
-        toast.success("Продукт успешно удалён");
-      } catch (err) {
-        toast.error("Ошибка при удалении продукта: " + err.message);
-      }
-    };
-
-    const shouldDisplayField = (key) => {
-      const excludedFields = [
-        "_id",
-        "createdAt",
-        "updatedAt",
-        "__v",
-        "accession",
-        "advantages",
-        "availability", // Fixed typo: "availabilitiy" should be "availability"
-        "construction",
-        "currency",
-        "description",
-        "mainImage",
-        "maxPressure",
-        "minPressure",
-        "rotationAngle",
-        "serviceLife",
-        "sizeInInch",
-        "sizeInmm",
-        "standard",
-        "surfaceMaterial",
-        "swiperImages",
-        "thickness",
-        "type",
-        "views",
-        "workEnv",
-        "workingPressure",
-        "workingTemperature",
-        "ordersCount",
-        "steelGrade",
-        "workEnvTemperature",
-        "nominalPressure",
-        "application",
-        "DN",
-        "SDR",
-      ];
-      return !excludedFields.includes(key);
-    };
-
-    const handlePageChange = (page) => {
-      setCurrentPage(page);
-    };
-
-    return (
+  return (
+    <div className="p-5">
       <div className="bg-base-100 p-4 rounded-lg">
         <h1 className="flex items-center justify-center pb-2 w-full text-2xl font-bold">
           <MdOutlineStore className="text-primary" /> Все товары
@@ -217,7 +233,9 @@
               <>
                 <button
                   className="btn btn-sm btn-circle absolute right-2 top-2"
-                  onClick={() => document.getElementById("product_modal").close()}
+                  onClick={() =>
+                    document.getElementById("product_modal").close()
+                  }
                 >
                   <MdClose className="text-lg" />
                 </button>
@@ -255,7 +273,9 @@
                                 value={value.join(", ")}
                                 onChange={handleInputChange}
                                 className="input input-bordered w-full"
-                                placeholder={`Введите через запятую, например: ${value.join(", ")}`}
+                                placeholder={`Введите через запятую, например: ${value.join(
+                                  ", "
+                                )}`}
                               />
                             ) : (
                               <input
@@ -303,7 +323,10 @@
                       <MdSave className="mr-2" /> Сохранить
                     </button>
                   ) : (
-                    <button className="btn btn-primary" onClick={handleEditToggle}>
+                    <button
+                      className="btn btn-primary"
+                      onClick={handleEditToggle}
+                    >
                       <MdEdit className="mr-2" /> Редактировать
                     </button>
                   )}
@@ -312,19 +335,24 @@
                   </button>
                   <button
                     className="btn"
-                    onClick={() => document.getElementById("product_modal").close()}
+                    onClick={() =>
+                      document.getElementById("product_modal").close()
+                    }
                   >
                     Закрыть
                   </button>
                 </div>
               </>
             ) : (
-              <p className="text-base-content text-center py-4">Продукт не выбран</p>
+              <p className="text-base-content text-center py-4">
+                Продукт не выбран
+              </p>
             )}
           </div>
         </dialog>
       </div>
-    );
-  };
+    </div>
+  );
+};
 
-  export default ProductsDashboard;
+export default ProductsDashboard;

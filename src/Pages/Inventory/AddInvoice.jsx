@@ -35,9 +35,11 @@ const AddInvoice = () => {
 
   useEffect(() => {
     if (productsError) {
+      console.error("Products fetch error:", productsError);
       toast.error(`Не удалось загрузить продукты: ${productsError}`);
     }
     if (productsData) {
+      console.log("Fetched products:", productsData);
       setProducts(Array.isArray(productsData) ? productsData : []);
     }
   }, [productsData, productsError]);
@@ -110,16 +112,29 @@ const AddInvoice = () => {
           items: tempItems,
         }),
       });
+    //   console.log("Response status:", response.status);
+    //   console.log("Response headers:", response.headers.get("content-type"));
 
-      const result = await response.json();
       if (!response.ok) {
-        throw new Error(result.message || "Не удалось добавить накладную");
+        const text = await response.text();
+        console.log("Raw response body:", text);
+        let errorMessage = "Не удалось добавить накладную";
+        try {
+          const result = JSON.parse(text);
+          errorMessage = result.message || errorMessage;
+        } catch (e) {
+          errorMessage = "Ошибка сервера: получен некорректный ответ";
+        }
+        throw new Error(errorMessage);
       }
 
+      const result = await response.json();
+      console.log("Response data:", result);
       toast.success("Накладная успешно добавлена");
       navigate("/stock");
     } catch (err) {
       toast.error(err.message || "Не удалось добавить накладную");
+      console.error("Error:", err);
     }
   };
 
@@ -161,7 +176,7 @@ const AddInvoice = () => {
 
   return (
     <div className="p-4">
-      <div className="max-w-7xд bg-base-100/50 backdrop-blur-xl rounded-3xl shadow-2xl p-6">
+      <div className="max-w-7xl bg-base-100/50 backdrop-blur-xl rounded-3xl shadow-2xl p-6">
         <h2 className="text-2xl sm:text-3xl font-bold text-primary mb-6 text-center">
           Добавить новое поступление
         </h2>
@@ -292,7 +307,7 @@ const AddInvoice = () => {
           </div>
         </div>
       </div>
-    </div>            
+    </div>
   );
 };
 

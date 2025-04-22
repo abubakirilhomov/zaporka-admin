@@ -75,12 +75,12 @@ const Sidebar = () => {
       links: [
         {
           name: "Приход",
-          route: "inventory", // English route path (you may need to add this route in index.jsx)
+          route: "stock", // English route path (you may need to add this route in index.jsx)
           icon: <MdOutlineInventory />,
         },
         {
           name: "Добавить Приход",
-          route: "add-stock", // English route path (you may need to add this route in index.jsx)
+          route: "add-invoice", // English route path (you may need to add this route in index.jsx)
           icon: <MdAddBusiness />,
         },
       ],
