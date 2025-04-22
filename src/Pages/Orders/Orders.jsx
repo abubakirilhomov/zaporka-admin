@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import useFetch from '../../hooks/useFetch';
 import CustomTable from '../../Components/CustomTable/CustomTable';
 import { MdOutlinePlaylistAdd } from 'react-icons/md';
+import Loading from '../../Components/Loading/Loading';
 
 const Orders = () => {
-  const apiUrl = `${process.env.REACT_APP_API_URL}/api/v1/orders`;
+  const apiUrl = `${process.env.REACT_APP_API_URL}/api/v1/orders`; 
   const token = localStorage.getItem('token');
 
   const headers = {
@@ -81,11 +82,11 @@ const Orders = () => {
         columns={columns}
         onRowClick={(order) => openModal(order)}
         actions={actions}
-        emptyMessage="Нет данных о заказах"
+        emptyMessage={<Loading />}
       />
 
       {isModalOpen && modalData && (
-        <div className="fixed inset-0  bg-opacity-50 flex justify-center items-center z-50">
+        <div className="fixed inset-0 bg-opacity-50 flex justify-center items-center z-50">
           <div className="bg-base-300 rounded-lg shadow-lg w-full max-w-md p-6">
             <div className="flex justify-between items-center border-b pb-3">
               <h2 className="text-xl font-semibold">Детали заказа</h2>
@@ -97,11 +98,13 @@ const Orders = () => {
               </button>
             </div>
             <div className="mt-4 space-y-2 text-sm text-primary">
-              {Object.entries(modalData).map(([key, value]) => (
-                <p key={key}>
-                  <span className="font-medium">{key}:</span> {value?.toString()}
-                </p>
-              ))}
+              {Object.entries(modalData)
+                .filter(([key]) => key !== '_id') 
+                .map(([key, value]) => (
+                  <p key={key}>
+                    <span className="font-medium">{key}:</span> {value?.toString()}
+                  </p>
+                ))}
             </div>
             <div className="mt-6 flex justify-end">
               <button
