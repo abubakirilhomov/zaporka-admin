@@ -75,6 +75,8 @@ const Orders = () => {
     },
   ];
 
+
+
   return (
     <div className="p-4">
       <CustomTable
@@ -107,6 +109,7 @@ const Orders = () => {
                 ))}
             </div>
             <div className="mt-6 flex justify-end">
+              {/* btn */}
               <button
                 onClick={closeModal}
                 className="btn btn-error px-4 py-2 rounded"
