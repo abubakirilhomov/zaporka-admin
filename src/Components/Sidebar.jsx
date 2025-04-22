@@ -61,15 +61,6 @@ const Sidebar = () => {
         },
       ],
     },
-    {
-      title: "Reviews",
-      links: [
-        {
-          name: "reviews",
-          icon: <AiOutlineStock />,
-        },
-      ],
-    },
   ];
 
   const { activeMenu, setActiveMenu, screenSize } = useStateContext();
