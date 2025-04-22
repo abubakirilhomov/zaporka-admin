@@ -5,6 +5,9 @@ const useFetch = (baseUrl, options = {}, autoFetch = true) => {
   const [loading, setLoading] = useState(autoFetch);
   const [error, setError] = useState(null);
 
+  // Memoize options to prevent unnecessary re-renders
+  const stableOptions = JSON.stringify(options);
+
   const fetchData = useCallback(
     async (url, overrideOptions = {}) => {
       if (!url) return;
@@ -14,30 +17,31 @@ const useFetch = (baseUrl, options = {}, autoFetch = true) => {
 
       try {
         const response = await fetch(url, {
-          ...options,
+          ...JSON.parse(stableOptions),
           ...overrideOptions,
         });
 
         if (!response.ok) {
           const errorText = await response.text();
-          throw new Error(`Ошибка: ${response.status} ${response.statusText} - ${errorText}`);
+          throw new Error(`Error: ${response.status} ${response.statusText} - ${errorText}`);
         }
 
         const result = await response.json();
         setData(result);
         return result;
       } catch (err) {
-        setError(err.message);
-        throw err; // Rethrow the error so the calling code can handle it
+        const errorMessage = err.message || "An unknown error occurred";
+        setError(errorMessage);
+        throw new Error(errorMessage); // Rethrow with a consistent message
       } finally {
         setLoading(false);
       }
     },
-    [options]
+    [stableOptions]
   );
 
   useEffect(() => {
-    if (autoFetch) {
+    if (autoFetch && baseUrl) {
       fetchData(baseUrl);
     }
   }, [baseUrl, autoFetch, fetchData]);
@@ -47,20 +51,21 @@ const useFetch = (baseUrl, options = {}, autoFetch = true) => {
   const postData = async (url, body) =>
     fetchData(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...options.headers },
       body: JSON.stringify(body),
     });
 
   const putData = async (url, body) =>
     fetchData(url, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...options.headers },
       body: JSON.stringify(body),
     });
 
   const deleteData = async (url) =>
     fetchData(url, {
       method: "DELETE",
+      headers: options.headers,
     });
 
   return { data, loading, error, revalidate, postData, putData, deleteData };

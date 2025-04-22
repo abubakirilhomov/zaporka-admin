@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, NavLink } from "react-router-dom";
 import { SiShopware } from "react-icons/si";
-import { MdOutlineCancel } from "react-icons/md";
+import { MdAddBusiness, MdOutlineCancel } from "react-icons/md";
 import { TooltipComponent } from "@syncfusion/ej2-react-popups";
 
 import { useStateContext } from "../Contexts/ContextProvider";
@@ -77,6 +77,11 @@ const Sidebar = () => {
           name: "Приход",
           route: "inventory", // English route path (you may need to add this route in index.jsx)
           icon: <MdOutlineInventory />,
+        },
+        {
+          name: "Добавить Приход",
+          route: "add-stock", // English route path (you may need to add this route in index.jsx)
+          icon: <MdAddBusiness />,
         },
       ],
     },
