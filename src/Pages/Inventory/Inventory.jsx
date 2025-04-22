@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import useFetch from "../../hooks/useFetch";
 import { toast } from "react-toastify";
-import { MdOutlineAddBox, MdDelete, MdClose } from "react-icons/md";
+import { MdOutlineAddBox, MdDelete, MdClose, MdOpenInNew } from "react-icons/md";
 import { motion, AnimatePresence } from "framer-motion";
 import Loading from "../../Components/Loading/Loading";
 import CustomTable from "../../Components/CustomTable/CustomTable";
@@ -139,15 +139,10 @@ const StockManager = () => {
       render: (value, row) => (
         <div className="flex gap-2">
           <button
-            className="btn btn-sm btn-error"
-            onClick={() => handleDeleteInvoice(row._id)}
-            disabled={isDeleting === row._id}
+            className="btn btn-sm btn-primary"
+            onClick={() => handleRowClick(row)}
           >
-            {isDeleting === row._id ? (
-              <span className="loading loading-spinner loading-xs"></span>
-            ) : (
-              <MdDelete />
-            )}
+            Открыть <MdOpenInNew />
           </button>
         </div>
       ),
