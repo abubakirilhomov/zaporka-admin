@@ -13,7 +13,7 @@ const useFetch = (baseUrl, options = {}, autoFetch = true) => {
       setError(null);
 
       try {
-        const response = await fetch(url, {
+        const response = await fetch(`${url}orders`, {
           ...options,
           ...overrideOptions,
         });

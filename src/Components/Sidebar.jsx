@@ -10,65 +10,75 @@ import { IoMdContacts } from "react-icons/io";
 import { AiOutlineCalendar, AiOutlineShoppingCart, AiOutlineStock } from "react-icons/ai";
 import { RiContactsLine } from "react-icons/ri";
 import { BsKanban } from "react-icons/bs";
+import { MdOutlineInventory } from "react-icons/md";
 
 const Sidebar = () => {
   const { activeMenu, setActiveMenu, screenSize, currentMode } = useStateContext();
 
   const links = [
     {
-      title: "Dashboard",
+      title: "Административная Панель",
       links: [
         {
-          name: "dashboard",
+          name: "Панель",
+          route: "dashboard", // English route path
           icon: <FiShoppingBag />,
         },
       ],
     },
     {
-      title: "Orders",
+      title: "Заказы",
       links: [
         {
-          name: "orders",
+          name: "Заказы",
+          route: "orders", // English route path
           icon: <FiShoppingBag />,
         },
       ],
     },
     {
-      title: "Users",
+      title: "Пользователи",
       links: [
         {
-          name: "all-users",
+          name: "Все-пользователи",
+          route: "all-users", // English route path
           icon: <IoMdContacts />,
         },
-        {
-          name: "customers",
-          icon: <AiOutlineShoppingCart />,
-        },
-        {
-          name: "workers",
-          icon: <RiContactsLine />,
-        },
+        // Uncomment and update if needed
+        // {
+        //   name: "Клиенты",
+        //   route: "customers",
+        //   icon: <AiOutlineShoppingCart />,
+        // },
+        // {
+        //   name: "Работники",
+        //   route: "workers",
+        //   icon: <RiContactsLine />,
+        // },
       ],
     },
     {
-      title: "Products",
+      title: "Продукты",
       links: [
         {
-          name: "products-dashboard",
+          name: "Панель-продуктов",
+          route: "products-dashboard", // English route path
           icon: <AiOutlineCalendar />,
         },
         {
-          name: "create-products",
+          name: "Создать-продукт",
+          route: "create-products", // English route path
           icon: <BsKanban />,
         },
       ],
     },
     {
-      title: "Reviews",
+      title: "Инвентаризация",
       links: [
         {
-          name: "reviews",
-          icon: <AiOutlineStock />,
+          name: "Приход",
+          route: "inventory", // English route path (you may need to add this route in index.jsx)
+          icon: <MdOutlineInventory />,
         },
       ],
     },
@@ -120,7 +130,7 @@ const Sidebar = () => {
                 </p>
                 {item.links.map((link) => (
                   <NavLink
-                    to={`/${link.name}`}
+                    to={`/${link.route}`} // Use the English route path
                     key={link.name}
                     onClick={handleCloseSidebar}
                     className={({ isActive }) =>
@@ -128,7 +138,7 @@ const Sidebar = () => {
                     }
                   >
                     {link.icon}
-                    <span className="capitalize">{link.name}</span>
+                    <span className="capitalize">{link.name}</span> {/* Display the Russian name */}
                   </NavLink>
                 ))}
               </div>

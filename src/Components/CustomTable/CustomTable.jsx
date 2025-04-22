@@ -1,6 +1,6 @@
 import React from "react";
 
-const CustomTable = ({ data, columns, emptyMessage, onSort, onRowClick, actions }) => {
+const CustomTable = ({ data, columns, emptyMessage, onSort, onRowClick, actions, currentPage, usersPerPage }) => {
   const handleSort = (key) => {
     if (onSort) {
       onSort(key);
@@ -37,7 +37,7 @@ const CustomTable = ({ data, columns, emptyMessage, onSort, onRowClick, actions 
                 {columns.map((column) => (
                   <td key={column.key}>
                     {column.render
-                      ? column.render(row[column.key]) // Pass the specific value, not the entire row
+                      ? column.render(row[column.key], row, index, { currentPage, usersPerPage }) // Pass all args + context
                       : row[column.key] || "Н/Д"}
                   </td>
                 ))}
