@@ -1,140 +1,229 @@
 import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import useFetch from "../../hooks/useFetch";
 import { toast } from "react-toastify";
-import { MdOutlineAddBox, MdClose } from "react-icons/md";
-import { motion } from "framer-motion";
+import { MdOutlineAddBox, MdDelete, MdClose } from "react-icons/md";
+import { motion, AnimatePresence } from "framer-motion";
 import Loading from "../../Components/Loading/Loading";
 import CustomTable from "../../Components/CustomTable/CustomTable";
 import CustomPagination from "../../Components/CustomPagination/CustomPagination";
 
 const StockManager = () => {
-  const apiUrl = process.env.REACT_APP_API_URL;
+  const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:5000";
   const token = localStorage.getItem("token");
+  const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
+  const [viewMode, setViewMode] = useState("groups");
+  const [isDeleting, setIsDeleting] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedInvoice, setSelectedInvoice] = useState(null);
   const limit = 10;
 
-  // Common headers with token
-  const authHeaders = {
-    Authorization: token ? `Bearer ${token}` : "",
-    "Content-Type": "application/json",
-  };
+  const authHeaders = token
+    ? {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      }
+    : { "Content-Type": "application/json" };
 
-  // Fetch stock receipts
-  const fetchReceiptsUrl = `${apiUrl}/api/v1/stock/history?page=${currentPage}&limit=${limit}`;
-  const { data: receiptsData, loading, error, revalidate, postData } = useFetch(
-    fetchReceiptsUrl,
+  const fetchUrl =
+    viewMode === "groups"
+      ? `${apiUrl}/api/v1/stock/history?page=${currentPage}&limit=${limit}`
+      : `${apiUrl}/api/v1/stock/history-items?page=${currentPage}&limit=${limit}`;
+
+  const { data: receiptsData, loading, error, revalidate } = useFetch(
+    fetchUrl,
     { headers: authHeaders },
     false
   );
 
-  // Fetch products for dropdown
-  const { data: productsData, loading: productsLoading, error: productsError } = useFetch(
-    `${apiUrl}/api/v1/products`,
-    { headers: authHeaders },
-    true
-  );
-
-  const [selectedProductId, setSelectedProductId] = useState("");
-  const [amount, setAmount] = useState("");
-  const [addedBy, setAddedBy] = useState("");
-
-  // Debug products and token
-  useEffect(() => {
-    console.log("Products Data:", productsData);
-    console.log("Products Loading:", productsLoading);
-    console.log("Products Error:", productsError);
-    console.log("Token:", token);
-  }, [productsData, productsLoading, productsError, token]);
-
-  // Revalidate receipts when page changes
   useEffect(() => {
     if (token) {
       revalidate();
+    } else {
+      toast.error("Пожалуйста, войдите в систему");
+      navigate("/login");
     }
-  }, [currentPage, token]);
+  }, [currentPage, token, viewMode, navigate]);
 
-  // Show toast for products error
   useEffect(() => {
-    if (productsError) {
-      toast.error(`Failed to load products: ${productsError}`);
+    if (receiptsData) {
+      console.log("Receipts data:", receiptsData);
     }
-  }, [productsError]);
+  }, [receiptsData]);
 
-  // Safely access receipts and products
-  const receipts = Array.isArray(receiptsData?.data) ? receiptsData.data : [];
-  const products = Array.isArray(productsData?.data) ? productsData.data : [];
-  const totalReceipts = receiptsData?.total || receipts.length;
-
-  // Handle loading and error states
-  if (!token) {
-    return <div className="text-error text-center">Please log in to view stock receipts.</div>;
-  }
-  if (loading) {
-    return <Loading />;
-  }
-  if (error) {
-    return <div className="text-error text-center">Error: {error}</div>;
-  }
-
-  // Open modal for new receipt
-  const openModal = () => {
-    setSelectedProductId("");
-    setAmount("");
-    setAddedBy("");
-    document.getElementById("stock_modal")?.showModal();
-  };
-
-  // Handle form submission
-  const handleSubmit = async () => {
-    if (!selectedProductId) {
-      toast.error("Please select a product");
-      return;
+  useEffect(() => {
+    if (error && error.includes("401")) {
+      toast.error("Сессия истекла. Пожалуйста, войдите снова.");
+      localStorage.removeItem("token");
+      navigate("/login");
     }
-    if (!amount || isNaN(amount) || Number(amount) <= 0) {
-      toast.error("Please enter a valid quantity");
-      return;
-    }
+  }, [error, navigate]);
 
+  const data = receiptsData?.data && Array.isArray(receiptsData.data) ? receiptsData.data : [];
+  const total = receiptsData?.total || 0;
+
+  const handleDeleteInvoice = async (invoiceId) => {
+
+
+    setIsDeleting(invoiceId);
     try {
-      await postData(
-        `${apiUrl}/api/v1/stock/add`,
-        {
-          productId: selectedProductId,
-          amount: Number(amount),
-          addedBy: addedBy || "Unknown",
-        },
-        { headers: authHeaders }
-      );
-      toast.success("Receipt added successfully");
+      const response = await fetch(`${apiUrl}/api/v1/stock/invoice/${invoiceId}`, {
+        method: "DELETE",
+        headers: authHeaders,
+      });
+
+      if (!response.ok) {
+        const result = await response.json();
+        throw new Error(result.message || "Не удалось удалить накладную");
+      }
+
+      toast.success("Накладная успешно удалена");
       revalidate();
-      document.getElementById("stock_modal")?.close();
     } catch (err) {
-      console.error("Error adding receipt:", err);
-      toast.error(err.message || "Failed to add receipt");
+      toast.error(err.message || "Ошибка при удалении накладной");
+    } finally {
+      setIsDeleting(null);
     }
   };
 
-  // Table columns for receipts
-  const columns = [
+  const handleRowClick = (row) => {
+    setSelectedInvoice(row);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedInvoice(null);
+  };
+
+  const groupColumns = [
     {
-      key: "productTitle",
-      label: "Product",
-      render: (row) => row.product?.title || "N/A",
+      key: "source",
+      label: "Источник",
+      render: (value) => value || "Не указано",
     },
-    { key: "amount", label: "Quantity" },
     {
-      key: "addedBy",
-      label: "Added By",
-      render: (row) => row.addedBy || "Unknown",
+      key: "date",
+      label: "Дата",
+      render: (value) =>
+        value
+          ? new Date(value).toLocaleString("ru-RU", {
+              timeZone: "Asia/Tashkent",
+              hour12: false,
+              year: "numeric",
+              month: "2-digit",
+              day: "2-digit",
+              hour: "2-digit",
+              minute: "2-digit",
+              second: "2-digit",
+            })
+          : "Н/Д",
     },
     {
-      key: "createdAt",
-      label: "Date",
-      render: (row) => (row.createdAt ? new Date(row.createdAt).toLocaleString() : "N/A"),
+      key: "itemsCount",
+      label: "Количество товаров",
+      render: (value, row) => `${row.items?.length || 0} товаров`,
+    },
+    {
+      key: "totalCost",
+      label: "Общая стоимость",
+      render: (value, row) => {
+        const total = row.items?.reduce((sum, item) => sum + (item.costPrice || 0) * (item.amount || 0), 0) || 0;
+        return `${total.toFixed(2)} UZS`;
+      },
+    },
+    {
+      key: "actions",
+      label: "Действия",
+      render: (value, row) => (
+        <div className="flex gap-2">
+          <button
+            className="btn btn-sm btn-error"
+            onClick={() => handleDeleteInvoice(row._id)}
+            disabled={isDeleting === row._id}
+          >
+            {isDeleting === row._id ? (
+              <span className="loading loading-spinner loading-xs"></span>
+            ) : (
+              <MdDelete />
+            )}
+          </button>
+        </div>
+      ),
     },
   ];
 
-  // Animation variants
+  const itemColumns = [
+    {
+      key: "productTitle",
+      label: "Продукт",
+      render: (value, row) => row.product?.title || "Н/Д",
+    },
+    { key: "amount", label: "Количество" },
+    {
+      key: "costPrice",
+      label: "Себестоимость",
+      render: (value) => (value ? `${value.toFixed(2)} UZS` : "Н/Д"),
+    },
+    {
+      key: "sellingPrice",
+      label: "Цена продажи",
+      render: (value) => (value ? `${value.toFixed(2)} UZS` : "Н/Д"),
+    },
+    {
+      key: "addedBy",
+      label: "Добавил",
+      render: (value) => value || "Неизвестно",
+    },
+    {
+      key: "invoiceSource",
+      label: "Источник",
+      render: (value, row) => row.invoice?.source || "Не указано",
+    },
+    {
+      key: "createdAt",
+      label: "Дата",
+      render: (value) =>
+        value
+          ? new Date(value).toLocaleString("ru-RU", {
+              timeZone: "Asia/Tashkent",
+              hour12: false,
+              year: "numeric",
+              month: "2-digit",
+              day: "2-digit",
+              hour: "2-digit",
+              minute: "2-digit",
+              second: "2-digit",
+            })
+          : "Н/Д",
+    },
+  ];
+
+  const nestedColumns = [
+    {
+      key: "productTitle",
+      label: "Продукт",
+      render: (value, row) => row.product?.title || "Н/Д",
+    },
+    { key: "amount", label: "Количество" },
+    {
+      key: "costPrice",
+      label: "Себестоимость",
+      render: (value) => (value ? `${value.toFixed(2)} UZS` : "Н/Д"),
+    },
+    {
+      key: "sellingPrice",
+      label: "Цена продажи",
+      render: (value) => (value ? `${value.toFixed(2)} UZS` : "Н/Д"),
+    },
+    {
+      key: "addedBy",
+      label: "Добавил",
+      render: (value) => value || "Неизвестно",
+    },
+  ];
+
   const containerVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: {
@@ -149,6 +238,31 @@ const StockManager = () => {
     visible: { opacity: 1, y: 0, transition: { duration: 0.4 } },
   };
 
+  const modalVariants = {
+    hidden: { opacity: 0, scale: 0.95 },
+    visible: { opacity: 1, scale: 1, transition: { duration: 0.3 } },
+    exit: { opacity: 0, scale: 0.95, transition: { duration: 0.3 } },
+  };
+
+  if (!token) {
+    return <div className="text-error text-center">Пожалуйста, войдите, чтобы просмотреть поступления на склад.</div>;
+  }
+
+  if (loading) {
+    return <Loading />;
+  }
+
+  if (error) {
+    return (
+      <div className="text-error text-center">
+        <p>Ошибка: {error}</p>
+        <button className="btn btn-primary mt-4" onClick={() => revalidate()}>
+          Повторить
+        </button>
+      </div>
+    );
+  }
+
   return (
     <motion.div
       className="min-h-screen bg-gradient-to-br from-base-100 to-base-300 p-4 sm:p-6 lg:p-8"
@@ -161,117 +275,152 @@ const StockManager = () => {
         variants={itemVariants}
       >
         <h2 className="text-2xl sm:text-3xl font-bold text-primary mb-6 text-center">
-          Stock Receipts
+          Поступления на склад
         </h2>
 
-        {/* Add Receipt Button */}
-        <motion.button
-          className="btn btn-primary fixed top-4 right-4 sm:top-6 sm:right-6 z-10 flex items-center gap-2"
-          onClick={openModal}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          disabled={productsLoading}
-        >
-          <MdOutlineAddBox className="text-xl" />
-          New Receipt
-        </motion.button>
+        <div className="flex justify-between mb-4">
+          <div className="tabs">
+            <button
+              className={`tab tab-bordered ${viewMode === "groups" ? "tab-active" : ""}`}
+              onClick={() => {
+                setViewMode("groups");
+                setCurrentPage(1);
+              }}
+            >
+              Группы
+            </button>
+            <button
+              className={`tab tab-bordered ${viewMode === "items" ? "tab-active" : ""}`}
+              onClick={() => {
+                setViewMode("items");
+                setCurrentPage(1);
+              }}
+            >
+              Отдельные товары
+            </button>
+          </div>
 
-        {/* Receipts Table */}
+          <Link to="/add-invoice">
+            <motion.button
+              className="btn btn-primary flex items-center gap-2"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <MdOutlineAddBox className="text-xl" />
+              Новое поступление
+            </motion.button>
+          </Link>
+        </div>
+
         <motion.div variants={itemVariants}>
-          {receipts.length === 0 ? (
-            <p className="text-base-content/70 text-center">No receipts found</p>
+          {data.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-lg text-base-content/70">
+                {viewMode === "groups" ? "Накладные не найдены" : "Товары не найдены"}
+              </p>
+              <p className="text-sm text-base-content/50 mt-2">
+                Попробуйте добавить новое поступление, чтобы начать.
+              </p>
+            </div>
           ) : (
-            <CustomTable data={receipts} columns={columns} actions={[]} />
+            <CustomTable
+              data={data}
+              columns={viewMode === "groups" ? groupColumns : itemColumns}
+              actions={[]}
+              emptyMessage={viewMode === "groups" ? "Накладные не найдены" : "Товары не найдены"}
+              onRowClick={viewMode === "groups" ? handleRowClick : undefined}
+            />
           )}
         </motion.div>
 
-        {/* Pagination */}
-        {receipts.length > 0 && (
+        {total > 0 && (
           <motion.div variants={itemVariants}>
             <CustomPagination
               currentPage={currentPage}
-              totalPages={Math.ceil(totalReceipts / limit)}
+              totalPages={Math.ceil(total / limit)}
               onPageChange={setCurrentPage}
             />
           </motion.div>
         )}
       </motion.div>
 
-      {/* Modal for Adding Receipt */}
-      <dialog id="stock_modal" className="modal">
-        <motion.div
-          className="modal-box bg-base-100/90 backdrop-blur-md max-w-md"
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.3 }}
-        >
-          <button
-            className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-            onClick={() => document.getElementById("stock_modal")?.close()}
+      {/* Модальное окно */}
+      <AnimatePresence>
+        {isModalOpen && selectedInvoice && (
+          <motion.div
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            onClick={closeModal}
           >
-            <MdClose className="text-2xl text-base-content" />
-          </button>
-          <h3 className="font-bold text-lg text-primary mb-4">Add New Receipt</h3>
-          <div className="space-y-4">
-            <div>
-              <label className="block mb-2 text-sm font-medium text-base-content">
-                Product
-              </label>
-              <select
-                value={selectedProductId}
-                onChange={(e) => setSelectedProductId(e.target.value)}
-                className="select select-bordered w-full bg-base-100/70"
-                disabled={productsLoading}
-              >
-                <option value="">Select a product</option>
-                {products.length === 0 && !productsLoading ? (
-                  <option disabled>No products available</option>
-                ) : (
-                  products.map((product) => (
-                    <option key={product._id} value={product._id}>
-                      {product.title || "Untitled"}
-                    </option>
-                  ))
-                )}
-              </select>
-            </div>
-            <div>
-              <label className="block mb-2 text-sm font-medium text-base-content">
-                Quantity
-              </label>
-              <input
-                type="number"
-                placeholder="Enter quantity"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                className="input input-bordered w-full bg-base-100/70"
-                min="1"
-              />
-            </div>
-            <div>
-              <label className="block mb-2 text-sm font-medium text-base-content">
-                Added By (optional)
-              </label>
-              <input
-                type="text"
-                placeholder="Enter name"
-                value={addedBy}
-                onChange={(e) => setAddedBy(e.target.value)}
-                className="input input-bordered w-full bg-base-100/70"
-              />
-            </div>
-            <motion.button
-              className="btn btn-primary w-full flex items-center justify-center gap-2"
-              onClick={handleSubmit}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              disabled={productsLoading || products.length === 0}
+            <motion.div
+              className="bg-base-100 rounded-3xl shadow-2xl p-6 max-w-3xl w-full max-h-[90vh] overflow-y-auto"
+              variants={modalVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              onClick={(e) => e.stopPropagation()}
             >
-              Add Receipt
-            </motion.button>
-          </div>
-        </motion.div>
-      </dialog>
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-2xl font-bold text-primary">Детали накладной</h3>
+                <button className="btn btn-sm btn-circle btn-ghost" onClick={closeModal}>
+                  <MdClose className="text-xl" />
+                </button>
+              </div>
+
+              <div className="mb-6 p-4 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-lg shadow-inner">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm font-medium text-base-content/70">ID накладной:</p>
+                    <p className="text-base-content">{selectedInvoice._id}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-base-content/70">Источник:</p>
+                    <p className="text-base-content">{selectedInvoice.source || "Не указано"}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-base-content/70">Дата:</p>
+                    <p className="text-base-content">
+                      {selectedInvoice.date
+                        ? new Date(selectedInvoice.date).toLocaleString("ru-RU", {
+                            timeZone: "Asia/Tashkent",
+                            hour12: false,
+                            year: "numeric",
+                            month: "2-digit",
+                            day: "2-digit",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            second: "2-digit",
+                          })
+                        : "Н/Д"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-base-content/70">Общее количество товаров:</p>
+                    <p className="text-base-content">{selectedInvoice.items?.length || 0} товаров</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-base-content/70">Общая стоимость:</p>
+                    <p className="text-base-content">
+                      {(selectedInvoice.items?.reduce((sum, item) => sum + (item.costPrice || 0) * (item.amount || 0), 0) || 0).toFixed(2)} UZS
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <h4 className="text-lg font-semibold text-primary mb-2">Товары в накладной</h4>
+              <CustomTable
+                data={selectedInvoice.items || []}
+                columns={nestedColumns}
+                actions={[]}
+                emptyMessage="Товары отсутствуют"
+              />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };

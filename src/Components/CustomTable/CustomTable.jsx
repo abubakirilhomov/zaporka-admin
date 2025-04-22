@@ -1,6 +1,15 @@
 import React from "react";
 
-const CustomTable = ({ data, columns, emptyMessage, onSort, onRowClick, actions, currentPage, usersPerPage }) => {
+const CustomTable = ({
+  data,
+  columns,
+  emptyMessage,
+  onSort,
+  onRowClick,
+  actions,
+  currentPage,
+  usersPerPage,
+}) => {
   const handleSort = (key) => {
     if (onSort) {
       onSort(key);
@@ -9,13 +18,16 @@ const CustomTable = ({ data, columns, emptyMessage, onSort, onRowClick, actions,
 
   return (
     <div className="overflow-x-auto">
-      <table className="table w-full">
+      <table className="table w-full border-collapse">
         <thead>
           <tr>
             {columns.map((column) => (
-              <th key={column.key}>
+              <th key={column.key} className="border p-2">
                 {column.sortable ? (
-                  <button onClick={() => handleSort(column.key)} className="btn btn-ghost">
+                  <button
+                    onClick={() => handleSort(column.key)}
+                    className="btn btn-ghost"
+                  >
                     {column.label}
                   </button>
                 ) : (
@@ -23,45 +35,55 @@ const CustomTable = ({ data, columns, emptyMessage, onSort, onRowClick, actions,
                 )}
               </th>
             ))}
-            {actions && <th>Действия</th>}
+            {actions?.length > 0 && <th className="border p-2">Действия</th>}
           </tr>
         </thead>
         <tbody>
           {data.length > 0 ? (
-            data.map((row, index) => (
-              <tr
-                key={row._id || index}
-                onClick={() => onRowClick && onRowClick(row)}
-                className="cursor-pointer hover:bg-base-200"
-              >
-                {columns.map((column) => (
-                  <td key={column.key}>
-                    {column.render
-                      ? column.render(row[column.key], row, index, { currentPage, usersPerPage }) // Pass all args + context
-                      : row[column.key] || "Н/Д"}
-                  </td>
-                ))}
-                {actions && (
-                  <td>
-                    {actions.map((action, idx) => (
-                      <button
-                        key={idx}
-                        className={`btn ${action.className}`}
-                        onClick={(e) => {
-                          e.stopPropagation(); // Prevent row click
-                          action.onClick(row);
-                        }}
-                      >
-                        {action.icon} {action.label}
-                      </button>
-                    ))}
-                  </td>
-                )}
-              </tr>
-            ))
+            data.map((row, index) => {
+              return (
+                <tr
+                  key={row._id || index}
+                  onClick={() => onRowClick && onRowClick(row)}
+                  className="cursor-pointer hover:bg-gray-100 border"
+                >
+                  {columns.map((column) => (
+                    <td key={column.key} className="border p-2">
+                      {column.render
+                        ? column.render(
+                            row[column.key],
+                            row,
+                            index,
+                            { currentPage, usersPerPage }
+                          )
+                        : row[column.key] || "Н/Д"}
+                    </td>
+                  ))}
+                  {actions?.length > 0 && (
+                    <td className="border p-2">
+                      {actions.map((action, idx) => (
+                        <button
+                          key={idx}
+                          className={`btn ${action.className}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            action.onClick(row);
+                          }}
+                        >
+                          {action.icon} {action.label}
+                        </button>
+                      ))}
+                    </td>
+                  )}
+                </tr>
+              );
+            })
           ) : (
             <tr>
-              <td colSpan={columns.length + (actions ? 1 : 0)} className="text-center">
+              <td
+                colSpan={columns.length + (actions?.length > 0 ? 1 : 0)}
+                className="text-center border p-2"
+              >
                 {emptyMessage}
               </td>
             </tr>

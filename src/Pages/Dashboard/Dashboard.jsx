@@ -129,9 +129,9 @@ const Dashboard = () => {
       >
         {/* Welcome Message */}
         <motion.div variants={itemVariants}>
-          <h1 className="bg-clip-text text-transparent bg-gradient-to-r from-info via-secondary to-accent text-5xl font-bold text-center">
+          <h1 className="text-5xl font-bold text-center">
             Welcome{" "}
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-info">
+            <span className="">
               {user || "Guest"}
             </span>
           </h1>

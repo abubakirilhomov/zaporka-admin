@@ -21,6 +21,7 @@ import Workers from "./Pages/Users/Workers/Workers";
 import Login from "./Pages/Login/Login";
 import ProtectedRoute from "./hooks/PrivateRoute";
 import Inventory from "./Pages/Inventory/Inventory";
+import AddInvoice from "./Pages/Inventory/AddInvoice";
 
 // Define your routes
 const router = createBrowserRouter([
@@ -101,10 +102,18 @@ const router = createBrowserRouter([
         ),
       },
       {
-        path: "inventory",
+        path: "stock",
         element: (
           <ProtectedRoute>
             <Inventory/>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "add-invoice",
+        element: (
+          <ProtectedRoute>
+            <AddInvoice/>
           </ProtectedRoute>
         ),
       }
