@@ -35,7 +35,6 @@ ChartJS.register(
 const Dashboard = () => {
   const user = useSelector((state) => state?.auth?.user?.username);
   const store = useSelector((state) => state);
-  console.log(store);
 
   const containerVariants = {
     hidden: { opacity: 0, y: 20 },

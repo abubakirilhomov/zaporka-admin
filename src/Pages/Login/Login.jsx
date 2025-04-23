@@ -21,16 +21,12 @@ const Login = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    console.log("Данные для входа:", { username, password });
 
     try {
       const response = await postData(
         `${process.env.REACT_APP_API_URL}/api/v1/auth/login`,
         { username, password }
       );
-
-      console.table(response);
-      console.log(response);
 
       if (response?.token) {
         const userData = {
