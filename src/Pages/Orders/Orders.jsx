@@ -20,11 +20,12 @@ const Orders = () => {
 
   const [modalData, setModalData] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  console.log(modalData);
+  
 
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+
 
   
 
@@ -39,6 +40,8 @@ const Orders = () => {
       totalPrice: order.totalPrice || 0,
     }))
     : [];
+    const totalPages = Math.ceil(orders.length / itemsPerPage);
+
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -134,7 +137,7 @@ const Orders = () => {
 
   return (
       <div className="p-4">
-        <p className='text-3xl pb-5 text-center text-primary font-bold'>Заказы:</p>
+        <p className='text-3xl pb-5 text-start text-primary font-bold'>Заказы:</p>
     
         {!data ? (
           <Loading />
@@ -147,12 +150,16 @@ const Orders = () => {
               actions={actions}
             />
     
-            <CustomPagination
-              totalItems={orders.length}
-              itemsPerPage={itemsPerPage}
-              currentPage={currentPage}
-              setCurrentPage={setCurrentPage}
-            />
+    <CustomPagination
+  totalItems={orders.length}
+  itemsPerPage={itemsPerPage}
+  currentPage={currentPage}
+  onPageChange={setCurrentPage}
+  totalPages={totalPages} // ✅ Shu yerda totalPages prop berildi
+/>
+
+
+
           </>
         )}
     
