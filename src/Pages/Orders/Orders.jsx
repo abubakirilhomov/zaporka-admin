@@ -8,9 +8,9 @@ import { AnimatePresence, motion } from "framer-motion";
 import { MdClose } from "react-icons/md";
 
 const Orders = () => {
-  const apiUrl = `${process.env.REACT_APP_API_URL}/api/v1/orders`; 
+  const apiUrl = `${process.env.REACT_APP_API_URL}/api/v1/orders`;
   const token = localStorage.getItem('token');
-  
+
 
   const headers = {
     Authorization: `Bearer ${token}`,
@@ -21,21 +21,23 @@ const Orders = () => {
   const [modalData, setModalData] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   console.log(modalData);
-  
+
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
   
+
+
   const orders = Array.isArray(data)
     ? data.map((order) => ({
-        ...order,
-        firstName: order.firstName || '',
-        lastName: order.lastName || '',
-        phoneNumber: order.phoneNumber || '',
-        address: order.address || '',
-        totalPrice: order.totalPrice || 0,
-      }))
+      ...order,
+      firstName: order.firstName || '',
+      lastName: order.lastName || '',
+      phoneNumber: order.phoneNumber || '',
+      address: order.address || '',
+      totalPrice: order.totalPrice || 0,
+    }))
     : [];
 
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -91,7 +93,7 @@ const Orders = () => {
           </ul>
         );
       }
-  
+
       return (
         <ul className="list-disc pl-5">
           {value.map((item, idx) => (
@@ -113,7 +115,7 @@ const Orders = () => {
       return value?.toString();
     }
   };
-  
+
 
   const actions = [
     {
@@ -131,103 +133,109 @@ const Orders = () => {
   };
 
   return (
-    <div className="p-4">
-      <p className='text-3xl pb-5 text-center text-primary font-bold'>Заказы:</p>
-
-      <CustomTable
-        data={currentOrders}
-        columns={columns}
-        onRowClick={(order) => openModal(order)}
-        actions={actions}
-        emptyMessage={<Loading />}
-      />
-
-      <CustomPagination
-        totalItems={orders.length}
-        itemsPerPage={itemsPerPage}
-        currentPage={currentPage}
-        setCurrentPage={setCurrentPage}
-      />
-
-<AnimatePresence>
-  {isModalOpen && modalData && (
-    <motion.div
-      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-      initial="hidden"
-      animate="visible"
-      exit="exit"
-      variants={modalVariants}
-      onClick={closeModal}
-    >
-      <motion.div
-        className="bg-base-100 rounded-3xl shadow-2xl p-6 max-w-3xl w-full max-h-[90vh] overflow-y-auto"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-2xl font-bold text-primary">Детали заказа</h3>
-          <button className="btn btn-sm btn-circle btn-ghost" onClick={closeModal}>
-            <MdClose className="text-xl" />
-          </button>
-        </div>
-
-        <div className="mb-6 p-4 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-lg shadow-inner space-y-3">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {modalData.firstName && (
-              <div>
-                <p className="text-sm font-medium text-base-content/70">Имя:</p>
-                <p className="text-base-content">{modalData.firstName}</p>
-              </div>
-            )}
-            {modalData.lastName && (
-              <div>
-                <p className="text-sm font-medium text-base-content/70">Фамилия:</p>
-                <p className="text-base-content">{modalData.lastName}</p>
-              </div>
-            )}
-            {modalData.phoneNumber && (
-              <div>
-                <p className="text-sm font-medium text-base-content/70">Номер телефона:</p>
-                <p className="text-base-content">{modalData.phoneNumber}</p>
-              </div>
-            )}
-            {modalData.address && (
-              <div>
-                <p className="text-sm font-medium text-base-content/70">Адрес:</p>
-                <p className="text-base-content">{modalData.address}</p>
-              </div>
-            )}
-            <div>
-              <p className="text-sm font-medium text-base-content/70">Общая сумма:</p>
-              <p className="text-base-content">{modalData.totalPrice?.toLocaleString()} UZS</p>
-            </div>
-            {Array.isArray(modalData.products) && (
-              <div className="sm:col-span-2">
-                <p className="text-sm font-medium text-base-content/70">Товары:</p>
-                <ul className="list-disc list-inside text-base-content">
-                  {modalData.products.map((product, idx) => (
-                    <li key={idx}>{product?.title || "Без названия"}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div className="mt-6 flex justify-end">
-          <button
-            onClick={closeModal}
-            className="btn btn-error px-4 py-2 rounded"
-          >
-            Закрыть
-          </button>
-        </div>
-      </motion.div>
-    </motion.div>
-  )}
-</AnimatePresence>
-
-    </div>
-  );
+      <div className="p-4">
+        <p className='text-3xl pb-5 text-center text-primary font-bold'>Заказы:</p>
+    
+        {!data ? (
+          <Loading />
+        ) : (
+          <>
+            <CustomTable
+              data={currentOrders}
+              columns={columns}
+              onRowClick={(order) => openModal(order)}
+              actions={actions}
+            />
+    
+            <CustomPagination
+              totalItems={orders.length}
+              itemsPerPage={itemsPerPage}
+              currentPage={currentPage}
+              setCurrentPage={setCurrentPage}
+            />
+          </>
+        )}
+    
+        <AnimatePresence>
+          {isModalOpen && modalData && (
+            <motion.div
+              className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              variants={modalVariants}
+              onClick={closeModal}
+            >
+              <motion.div
+                className="bg-base-100 rounded-3xl shadow-2xl p-6 max-w-3xl w-full max-h-[90vh] overflow-y-auto"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Modal content */}
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-2xl font-bold text-primary">Детали заказа</h3>
+                  <button className="btn btn-sm btn-circle btn-ghost" onClick={closeModal}>
+                    <MdClose className="text-xl" />
+                  </button>
+                </div>
+    
+                <div className="mb-6 p-4 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-lg shadow-inner space-y-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {modalData.firstName && (
+                      <div>
+                        <p className="text-sm font-medium text-base-content/70">Имя:</p>
+                        <p className="text-base-content">{modalData.firstName}</p>
+                      </div>
+                    )}
+                    {modalData.lastName && (
+                      <div>
+                        <p className="text-sm font-medium text-base-content/70">Фамилия:</p>
+                        <p className="text-base-content">{modalData.lastName}</p>
+                      </div>
+                    )}
+                    {modalData.phoneNumber && (
+                      <div>
+                        <p className="text-sm font-medium text-base-content/70">Номер телефона:</p>
+                        <p className="text-base-content">{modalData.phoneNumber}</p>
+                      </div>
+                    )}
+                    {modalData.address && (
+                      <div>
+                        <p className="text-sm font-medium text-base-content/70">Адрес:</p>
+                        <p className="text-base-content">{modalData.address}</p>
+                      </div>
+                    )}
+                    <div>
+                      <p className="text-sm font-medium text-base-content/70">Общая сумма:</p>
+                      <p className="text-base-content">{modalData.totalPrice?.toLocaleString()} UZS</p>
+                    </div>
+                    {Array.isArray(modalData.products) && (
+                      <div className="sm:col-span-2">
+                        <p className="text-sm font-medium text-base-content/70">Товары:</p>
+                        <ul className="list-disc list-inside text-base-content">
+                          {modalData.products.map((product, idx) => (
+                            <li key={idx}>{product?.title || "Без названия"}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                </div>
+    
+                <div className="mt-6 flex justify-end">
+                  <button
+                    onClick={closeModal}
+                    className="btn btn-error px-4 py-2 rounded"
+                  >
+                    Закрыть
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    );
+    
 };
 
 export default Orders;
