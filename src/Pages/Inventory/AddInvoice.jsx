@@ -39,7 +39,6 @@ const AddInvoice = () => {
       toast.error(`Не удалось загрузить продукты: ${productsError}`);
     }
     if (productsData) {
-      console.log("Fetched products:", productsData);
       setProducts(Array.isArray(productsData) ? productsData : []);
     }
   }, [productsData, productsError]);
@@ -112,8 +111,6 @@ const AddInvoice = () => {
           items: tempItems,
         }),
       });
-    //   console.log("Response status:", response.status);
-    //   console.log("Response headers:", response.headers.get("content-type"));
 
       if (!response.ok) {
         const text = await response.text();
@@ -129,7 +126,6 @@ const AddInvoice = () => {
       }
 
       const result = await response.json();
-      console.log("Response data:", result);
       toast.success("Накладная успешно добавлена");
       navigate("/stock");
     } catch (err) {

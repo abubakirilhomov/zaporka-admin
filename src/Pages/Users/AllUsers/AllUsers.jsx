@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 import CustomPagination from "../../../Components/CustomPagination/CustomPagination";
 import CustomTable from "../../../Components/CustomTable/CustomTable";
 import Loading from "../../../Components/Loading/Loading";
+import { useSelector } from "react-redux";
 
 const AllUsers = () => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -15,6 +16,14 @@ const AllUsers = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const token = useSelector((state) => state.auth.user.token)
+
+  const authHeaders = token
+    ? {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      }
+    : { "Content-Type": "application/json" };
 
   const [modalState, setModalState] = useState({
     isEditOpen: false,
@@ -30,12 +39,7 @@ const AllUsers = () => {
     try {
       const response = await fetch(url, {
         ...options,
-        headers: {
-          Accept: "*/*",
-          "Content-Type": "application/json",
-          ...options.headers,
-        },
-      });
+        headers: authHeaders});
       if (!response.ok) throw new Error(`Ошибка: ${response.status}`);
       return await response.json();
     } catch (err) {
@@ -278,7 +282,7 @@ const AllUsers = () => {
         </div>
       </div>
 
-      <div className="card bg-base-200 shadow-md overflow-x-auto">
+      <div className=" bg-base-200 shadow-md">
         <CustomTable
           data={paginatedUsers}
           columns={columns}
