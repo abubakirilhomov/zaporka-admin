@@ -282,7 +282,7 @@ const AllUsers = () => {
         </div>
       </div>
 
-      <div className="card bg-base-200 shadow-md">
+      <div className=" bg-base-200 shadow-md">
         <CustomTable
           data={paginatedUsers}
           columns={columns}
