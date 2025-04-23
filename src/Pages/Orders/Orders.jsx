@@ -21,13 +21,8 @@ const Orders = () => {
   const [modalData, setModalData] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   
-
-
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
-
-
-  
 
 
   const orders = Array.isArray(data)
