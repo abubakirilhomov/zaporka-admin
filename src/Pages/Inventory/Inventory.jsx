@@ -107,6 +107,7 @@ const StockManager = () => {
         initial="hidden"
         animate="visible"
       > */}
+        <div className="pr-8 py-5">
         <motion.div
           className="max-w-7xl mx-auto bg-base-100/50 backdrop-blur-xl rounded-3xl shadow-2xl p-6"
           variants={itemVariants}
@@ -272,6 +273,7 @@ const StockManager = () => {
             </motion.div>
           )}
         </AnimatePresence>
+        </div>
       {/* </motion.div> */}
     </ErrorBoundary>
   );

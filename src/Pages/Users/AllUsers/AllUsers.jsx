@@ -227,7 +227,8 @@ const AllUsers = () => {
   ];
 
   return (
-    <div className="container mx-auto min-h-screen p-4 md:p-6 bg-base-100 rounded-xl shadow-xl">
+    <div className="pr-8 py-5">
+      <div className="container mx-auto min-h-screen p-4 md:p-6 bg-base-100 rounded-xl shadow-xl">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -452,6 +453,7 @@ const AllUsers = () => {
           </motion.div>
         </div> 
       )}
+    </div>
     </div>
   );
 };
