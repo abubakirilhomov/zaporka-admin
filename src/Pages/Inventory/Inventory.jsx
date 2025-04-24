@@ -101,12 +101,12 @@ const StockManager = () => {
 
   return (
     <ErrorBoundary>
-      <motion.div
+      {/* <motion.div
         className="min-h-screen bg-gradient-to-br from-base-100 to-base-300 p-4 sm:p-6 lg:p-8"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-      >
+      > */}
         <motion.div
           className="max-w-7xl mx-auto bg-base-100/50 backdrop-blur-xl rounded-3xl shadow-2xl p-6"
           variants={itemVariants}
@@ -272,7 +272,7 @@ const StockManager = () => {
             </motion.div>
           )}
         </AnimatePresence>
-      </motion.div>
+      {/* </motion.div> */}
     </ErrorBoundary>
   );
 };
