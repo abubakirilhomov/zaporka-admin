@@ -83,11 +83,11 @@ const Navbar = () => {
             <div className="absolute right-0 top-16 bg-base-200 shadow-lg rounded-lg w-48 p-3 z-[9999]">
               <p className="text-center text-base-content font-semibold">{username}</p>
               <div className="mt-2 border-t border-base-300"></div>
-              <Link to="/settings">
+              {/* <Link to="/settings">
                 <button className="w-full text-left px-4 py-2 hover:bg-base-300 rounded-lg flex items-center gap-2">
                   <MdSettings /> Settings
                 </button>
-              </Link>
+              </Link> */}
               <label
                 htmlFor="logout-modal"
                 className="w-full text-left px-4 py-2 hover:bg-base-300 rounded-lg text-error flex items-center gap-2 cursor-pointer"
