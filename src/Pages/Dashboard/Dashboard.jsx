@@ -143,9 +143,9 @@ const Dashboard = () => {
               label: "Общая сумма заказов (₽)",
               data: [totalDelivered, totalCanceled, totalInProgress],
               backgroundColor: [
-                "rgba(75, 192, 192, 0.6)",   // Доставлено
-                "rgba(255, 99, 132, 0.6)",   // Отменено
-                "rgba(255, 206, 86, 0.6)"    // В процессе
+                "rgba(75, 192, 192, 0.6)",   
+                "rgba(255, 99, 132, 0.6)", 
+                "rgba(255, 206, 86, 0.6)"   
               ],
               borderColor: [
                 "rgba(75, 192, 192, 1)",
@@ -167,7 +167,6 @@ const Dashboard = () => {
   }, []);
   
   
-  // Определим chartOptions для общего использования на разных графиках
   const chartOptions = {
     responsive: true,
     maintainAspectRatio: false,
