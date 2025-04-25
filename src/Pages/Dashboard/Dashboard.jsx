@@ -1,11 +1,7 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { motion } from "framer-motion";
-import {
-  Bar,
-  Line,
-  Pie,
-} from "react-chartjs-2";
+import { Bar, Line, Pie, Doughnut } from "react-chartjs-2";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -35,6 +31,29 @@ ChartJS.register(
 const Dashboard = () => {
   const user = useSelector((state) => state?.auth?.user?.username);
   const store = useSelector((state) => state);
+  const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:5000";
+  
+
+  const [seaOrdersData, setSeaOrdersData] = useState({
+    labels: [],
+    datasets: [
+      {
+        label: "Морские заказы",
+        data: [],
+        backgroundColor: [
+          "rgba(54, 162, 235, 0.6)", // blue
+          "rgba(75, 192, 192, 0.6)", // teal
+          "rgba(255, 99, 132, 0.6)", // red
+        ],
+        borderColor: [
+          "rgba(54, 162, 235, 1)",
+          "rgba(75, 192, 192, 1)",
+          "rgba(255, 99, 132, 1)",
+        ],
+        borderWidth: 1,
+      },
+    ],
+  });
 
   const containerVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -97,22 +116,85 @@ const Dashboard = () => {
     ],
   };
 
+  useEffect(() => {
+    const fetchSeaOrders = async () => {
+      try {
+        const response = await fetch(`${apiUrl}/api/v1/orders`);
+        const data = await response.json();
+  
+        let totalDelivered = 0;
+        let totalCanceled = 0;
+        let totalInProgress = 0;
+  
+        data.forEach(order => {
+          if (order.status === "Доставлено") {
+            totalDelivered += order.totalPrice;
+          } else if (order.status === "Отменено") {
+            totalCanceled += order.totalPrice;
+          } else if (order.status === "В процессе") {
+            totalInProgress += order.totalPrice;
+          }
+        });
+  
+        setSeaOrdersData({
+          labels: ["Доставлено", "Отменено", "В процессе"],
+          datasets: [
+            {
+              label: "Общая сумма заказов (₽)",
+              data: [totalDelivered, totalCanceled, totalInProgress],
+              backgroundColor: [
+                "rgba(75, 192, 192, 0.6)",   // Доставлено
+                "rgba(255, 99, 132, 0.6)",   // Отменено
+                "rgba(255, 206, 86, 0.6)"    // В процессе
+              ],
+              borderColor: [
+                "rgba(75, 192, 192, 1)",
+                "rgba(255, 99, 132, 1)",
+                "rgba(255, 206, 86, 1)"
+              ],
+              borderWidth: 1,
+            },
+          ],
+        });
+      } catch (error) {
+        console.error("Ошибка при получении заказов:", error);
+      }
+    };
+  
+    fetchSeaOrders();
+    const interval = setInterval(fetchSeaOrders, 10000);
+    return () => clearInterval(interval);
+  }, []);
+  
+  
+  // Определим chartOptions для общего использования на разных графиках
   const chartOptions = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
       legend: {
         position: "top",
-        labels: { color: "#e5e7eb" },
+        labels: {
+          color: "#e5e7eb",
+        },
       },
       title: {
         display: true,
+        text: "Статусы заказов",
         color: "#e5e7eb",
       },
     },
     scales: {
-      x: { ticks: { color: "#e5e7eb" } },
-      y: { ticks: { color: "#e5e7eb" } },
+      x: {
+        ticks: {
+          color: "#e5e7eb",
+        },
+      },
+      y: {
+        ticks: {
+          color: "#e5e7eb",
+        },
+      },
     },
   };
 
@@ -124,19 +206,14 @@ const Dashboard = () => {
         initial="hidden"
         animate="visible"
       >
-        {/* Приветствие */}
         <motion.div variants={itemVariants}>
-          <h1 className="text-5xl font-bold text-center">
+          <p className="text-5xl font-bold text-center">
             Добро пожаловать,{" "}
-            <span className="">
-              {user || "Гость"}
-            </span>
-          </h1>
+            <span>{user || "Гость"}</span>
+          </p>
         </motion.div>
 
-        {/* Сетка с графиками */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Гистограмма */}
           <motion.div
             className="card bg-base-100 shadow-xl p-4 h-96"
             variants={itemVariants}
@@ -145,14 +222,10 @@ const Dashboard = () => {
               Продажи по месяцам
             </h2>
             <div className="relative h-full">
-              <Bar
-                data={barData}
-                options={{ ...chartOptions, title: { text: "Продажи по месяцам" } }}
-              />
+              <Bar data={barData} options={chartOptions} />
             </div>
           </motion.div>
 
-          {/* Линейный график */}
           <motion.div
             className="card bg-base-100 shadow-xl p-4 h-96"
             variants={itemVariants}
@@ -161,14 +234,10 @@ const Dashboard = () => {
               Пользователи за неделю
             </h2>
             <div className="relative h-full">
-              <Line
-                data={lineData}
-                options={{ ...chartOptions, title: { text: "Пользователи за неделю" } }}
-              />
+              <Line data={lineData} options={chartOptions} />
             </div>
           </motion.div>
 
-          {/* Круговая диаграмма */}
           <motion.div
             className="card bg-base-100 shadow-xl p-4 h-96"
             variants={itemVariants}
@@ -177,10 +246,19 @@ const Dashboard = () => {
               Категории продуктов
             </h2>
             <div className="relative h-full">
-              <Pie
-                data={pieData}
-                options={{ ...chartOptions, title: { text: "Категории продуктов" } }}
-              />
+              <Pie data={pieData} options={chartOptions} />
+            </div>
+          </motion.div>
+
+          <motion.div
+            className="card bg-base-100 shadow-xl p-4 h-96"
+            variants={itemVariants}
+          >
+            <h2 className="text-xl font-semibold text-base-content mb-4">
+              Статусы заказов
+            </h2>
+            <div className="relative h-full">
+              <Doughnut data={seaOrdersData} options={chartOptions} />
             </div>
           </motion.div>
         </div>
