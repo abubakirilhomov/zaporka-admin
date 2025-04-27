@@ -12,6 +12,7 @@ import {
 import CustomTable from "../../../Components/CustomTable/CustomTable";
 import Loading from "../../../Components/Loading/Loading";
 import CustomPagination from "../../../Components/CustomPagination/CustomPagination";
+import CustomBtn from "../../../Components/CustomBtn/CustomBtn"; // Предполагается, что CustomBtn находится в той же директории
 
 const ProductsDashboard = () => {
   const apiUrl = `${process.env.REACT_APP_API_URL}/api/v1/products`;
@@ -19,7 +20,6 @@ const ProductsDashboard = () => {
   const [totalPages, setTotalPages] = useState(1);
   const limit = 10;
 
-  // Include pagination parameters in the fetch URL
   const fetchUrl = `${apiUrl}?page=${currentPage}&limit=${limit}`;
   const { data, loading, error, revalidate, putData, deleteData } = useFetch(
     fetchUrl,
@@ -30,40 +30,31 @@ const ProductsDashboard = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedProduct, setEditedProduct] = useState(null);
 
-  // Debug logging
-  console.log("Raw API data:", data);
-
   useEffect(() => {
     revalidate();
   }, [currentPage]);
 
   useEffect(() => {
     if (data) {
-      console.log("Received data:", data); // Debug the structure
-      // Check if the response is a paginated object or a flat array
       const products = Array.isArray(data?.data)
         ? data.data
         : Array.isArray(data)
         ? data
         : [];
-      const total = data?.total || products.length; // Use total if provided, otherwise use array length
+      const total = data?.total || products.length || 0;
       setTotalPages(Math.ceil(total / limit));
     }
   }, [data, limit]);
 
   if (loading) return <Loading />;
-  if (error)
-    return <div className="text-error text-center py-4">Ошибка: {error}</div>;
+  if (error) return <div className="text-error text-center py-4">Ошибка: {error}</div>;
 
-  // Ensure products is always an array
   const products = Array.isArray(data?.data)
     ? data.data
     : Array.isArray(data)
     ? data
     : [];
-  console.log("Processed products:", products); // Debug the final array
 
-  // Define important fields for the table
   const importantFields = [
     { key: "title", label: "Название" },
     { key: "stock", label: "Запас" },
@@ -73,16 +64,10 @@ const ProductsDashboard = () => {
     { key: "model", label: "Модель" },
   ];
 
-  // Map fields to columns with a render function for formatting
   const columns = importantFields.map((field) => ({
     key: field.key,
     label: field.label,
-    render: (value) =>
-      value === undefined || value === null
-        ? "Н/Д"
-        : Array.isArray(value)
-        ? value.join(", ")
-        : value.toString(),
+    render: (value) => normalizeFieldValue(value),
   }));
 
   const actions = [
@@ -108,7 +93,6 @@ const ProductsDashboard = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    // Handle array fields by splitting the input string
     const isArrayField = [
       "price",
       "sizeInInch",
@@ -129,7 +113,7 @@ const ProductsDashboard = () => {
     setEditedProduct((prev) => ({
       ...prev,
       [name]: isArrayField
-        ? value.split(",").map((item) => item.trim())
+        ? value.split(",").map((item) => item.trim()).filter(Boolean)
         : value,
     }));
   };
@@ -138,7 +122,7 @@ const ProductsDashboard = () => {
     if (!editedProduct || !editedProduct._id) return;
     try {
       const updateUrl = `${apiUrl}/${editedProduct._id}`;
-      await putData(updateUrl, editedProduct); // Use putData from the hook instance
+      await putData(updateUrl, editedProduct);
       revalidate();
       setIsEditing(false);
       toast.success("Продукт успешно обновлён");
@@ -152,7 +136,7 @@ const ProductsDashboard = () => {
     if (!selectedProduct) return;
     try {
       const deleteUrl = `${apiUrl}/${selectedProduct._id}`;
-      await deleteData(deleteUrl); // Use deleteData from the hook instance
+      await deleteData(deleteUrl);
       revalidate();
       setSelectedProduct(null);
       document.getElementById("product_modal").close();
@@ -169,40 +153,35 @@ const ProductsDashboard = () => {
       "updatedAt",
       "__v",
       "accession",
-      "advantages",
-      "availability", // Fixed typo: "availabilitiy" should be "availability"
+      "availability",
       "construction",
       "currency",
       "description",
       "mainImage",
-      "maxPressure",
-      "minPressure",
-      "rotationAngle",
-      "serviceLife",
-      "sizeInInch",
-      "sizeInmm",
-      "standard",
-      "surfaceMaterial",
-      "swiperImages",
-      "thickness",
-      "type",
       "views",
-      "workEnv",
-      "workingPressure",
-      "workingTemperature",
       "ordersCount",
       "steelGrade",
       "workEnvTemperature",
-      "nominalPressure",
-      "application",
-      "DN",
-      "SDR",
     ];
     return !excludedFields.includes(key);
   };
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
+  };
+
+  // Улучшенная функция для нормализации значений полей
+  const normalizeFieldValue = (value) => {
+    if (value === undefined || value === null) return "Н/Д";
+    if (Array.isArray(value)) return value.join(", ");
+    if (typeof value === "boolean") return value ? "Да" : "Нет";
+    if (typeof value === "object") {
+      // Проверяем, есть ли поле name (как в случае с category)
+      if (value.name) return value.name;
+      // Если это объект без имени, преобразуем его в строку
+      return JSON.stringify(value, null, 2).replace(/{|}/g, "");
+    }
+    return value.toString();
   };
 
   return (
@@ -218,7 +197,7 @@ const ProductsDashboard = () => {
           actions={actions}
           emptyMessage="Нет данных о продуктах"
         />
-        {totalPages > 1 && (
+        {totalPages >= 1 && (
           <div>
             <CustomPagination
               currentPage={currentPage}
@@ -241,7 +220,7 @@ const ProductsDashboard = () => {
                 </button>
                 <h3 className="font-bold text-lg flex items-center gap-2 mb-6">
                   <MdOutlinePlaylistAdd className="text-2xl" /> Детали продукта:{" "}
-                  {selectedProduct.title}
+                  {selectedProduct.title || "Без названия"}
                 </h3>
                 <div className="py-4 space-y-6">
                   {isEditing ? (
@@ -259,7 +238,7 @@ const ProductsDashboard = () => {
                             {typeof value === "boolean" ? (
                               <select
                                 name={key}
-                                value={editedProduct[key] ? "true" : "false"}
+                                value={value ? "true" : "false"}
                                 onChange={handleInputChange}
                                 className="select select-bordered w-full"
                               >
@@ -273,15 +252,25 @@ const ProductsDashboard = () => {
                                 value={value.join(", ")}
                                 onChange={handleInputChange}
                                 className="input input-bordered w-full"
-                                placeholder={`Введите через запятую, например: ${value.join(
-                                  ", "
-                                )}`}
+                                placeholder={`Введите через запятую, например: ${value.join(", ")}`}
+                              />
+                            ) : typeof value === "object" ? (
+                              <input
+                                type="text"
+                                name={key}
+                                value={value.name || JSON.stringify(value, null, 2)}
+                                onChange={(e) =>
+                                  handleInputChange({
+                                    target: { name: key, value: e.target.value },
+                                  })
+                                }
+                                className="input input-bordered w-full"
                               />
                             ) : (
                               <input
                                 type="text"
                                 name={key}
-                                value={editedProduct[key] || ""}
+                                value={value ?? ""}
                                 onChange={handleInputChange}
                                 className="input input-bordered w-full"
                               />
@@ -303,13 +292,7 @@ const ProductsDashboard = () => {
                               {key.replace(/([A-Z])/g, " $1").trim()}:
                             </span>
                             <span className="text-base-content text-sm">
-                              {Array.isArray(value)
-                                ? value.join(", ")
-                                : value === true
-                                ? "Да"
-                                : value === false
-                                ? "Нет"
-                                : value || "Н/Д"}
+                              {normalizeFieldValue(value)}
                             </span>
                           </div>
                         );
@@ -319,28 +302,40 @@ const ProductsDashboard = () => {
                 </div>
                 <div className="modal-action flex gap-4 mt-6">
                   {isEditing ? (
-                    <button className="btn btn-success" onClick={handleSave}>
-                      <MdSave className="mr-2" /> Сохранить
-                    </button>
-                  ) : (
-                    <button
-                      className="btn btn-primary"
-                      onClick={handleEditToggle}
+                    <CustomBtn
+                      text="Сохранить"
+                      method="put"
+                      onClick={handleSave}
+                      variant="success"
+                      className="flex items-center gap-2"
                     >
-                      <MdEdit className="mr-2" /> Редактировать
-                    </button>
+                      <MdSave />
+                    </CustomBtn>
+                  ) : (
+                    <CustomBtn
+                      text="Редактировать"
+                      method="put"
+                      onClick={handleEditToggle}
+                      className="flex items-center gap-2"
+                    >
+                      <MdEdit />
+                    </CustomBtn>
                   )}
-                  <button className="btn btn-error" onClick={handleDelete}>
-                    <MdDelete className="mr-2" /> Удалить
-                  </button>
-                  <button
-                    className="btn"
-                    onClick={() =>
-                      document.getElementById("product_modal").close()
-                    }
+                  <CustomBtn
+                    text="Удалить"
+                    method="delete"
+                    onClick={handleDelete}
+                    className="flex items-center gap-2"
                   >
-                    Закрыть
-                  </button>
+                    <MdDelete />
+                  </CustomBtn>
+                  <CustomBtn
+                    text="Закрыть"
+                    method="post"
+                    onClick={() => document.getElementById("product_modal").close()}
+                    variant="neutral"
+                    className="flex items-center gap-2"
+                  />
                 </div>
               </>
             ) : (

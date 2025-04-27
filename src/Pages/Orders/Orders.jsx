@@ -1,16 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import useFetch from '../../hooks/useFetch';
 import CustomTable from '../../Components/CustomTable/CustomTable';
-import { MdOutlinePlaylistAdd } from 'react-icons/md';
+import { MdOutlinePlaylistAdd, MdClose } from 'react-icons/md';
 import Loading from '../../Components/Loading/Loading';
 import CustomPagination from '../../Components/CustomPagination/CustomPagination';
-import { AnimatePresence, motion } from "framer-motion";
-import { MdClose } from "react-icons/md";
+import { AnimatePresence, motion } from 'framer-motion';
 
 const Orders = () => {
   const apiUrl = `${process.env.REACT_APP_API_URL}/api/v1/orders`;
   const token = localStorage.getItem('token');
-
 
   const headers = {
     Authorization: `Bearer ${token}`,
@@ -18,29 +16,78 @@ const Orders = () => {
 
   const { data } = useFetch(apiUrl, { headers }, true);
 
+  const [ordersWithPayStatus, setOrdersWithPayStatus] = useState([]);
+  const [isLoadingPayStatus, setIsLoadingPayStatus] = useState(false);
+
   const [modalData, setModalData] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-
   const orders = Array.isArray(data)
     ? data.map((order) => ({
-      ...order,
-      firstName: order.firstName || '',
-      lastName: order.lastName || '',   
-      phoneNumber: order.phoneNumber || '',
-      address: order.address || '',
-      totalPrice: order.totalPrice || 0,
-    }))
+        ...order,
+        firstName: order.firstName || '',
+        lastName: order.lastName || '',
+        phoneNumber: order.phoneNumber || '',
+        address: order.address || '',
+        totalPrice: order.totalPrice || 0,
+      }))
     : [];
-  const totalPages = Math.ceil(orders.length / itemsPerPage);
 
+  const totalPages = Math.ceil(ordersWithPayStatus.length / itemsPerPage);
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentOrders = orders.slice(indexOfFirstItem, indexOfLastItem);
+  const currentOrders = ordersWithPayStatus.slice(indexOfFirstItem, indexOfLastItem);
+
+  // 👉 Har bir order uchun pay statusni olib kelish
+  useEffect(() => {
+    const fetchPayStatuses = async () => {
+      if (!orders.length) return;
+      setIsLoadingPayStatus(true);
+      try {
+        const updatedOrders = await Promise.all(
+          orders.map(async (order) => {
+            try {
+              const res = await fetch(`https://zaporka-backend.onrender.com/api/v1/orders/${order._id}/pay`, {
+                headers,
+              });
+              const payData = await res.json();
+              return {
+                ...order,
+                isPaid: payData.isPaid || false, 
+              };
+            } catch (err) {
+              console.error('Error fetching pay status', err);
+              return {
+                ...order,
+                isPaid: false,
+              };
+            }
+          })
+        );
+        setOrdersWithPayStatus(updatedOrders);
+      } catch (error) {
+        console.error('Failed to fetch pay statuses', error);
+      } finally {
+        setIsLoadingPayStatus(false);
+      }
+    };
+
+    fetchPayStatuses();
+  }, [data]); // data kelganda ishlaydi
+
+  const openModal = (order) => {
+    setModalData(order);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setModalData(null);
+  };
 
   const columns = [
     {
@@ -68,52 +115,16 @@ const Orders = () => {
       label: 'Общая сумма',
       render: (value) => value?.toString(),
     },
+    {
+      key: 'isPaid',
+      label: 'Статус оплаты',
+      render: (value) => (
+        <span className={`px-2 py-1 rounded-full text-xs font-bold ${value ? 'bg-success text-base-100' : 'bg-warning text-base-100'}`}>
+          {value ? 'Оплаченный' : 'Не Оплаченный'}
+        </span>
+      ),
+    },
   ];
-
-  const openModal = (order) => {
-    setModalData(order);
-    setIsModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setModalData(null);
-  };
-
-  const renderValue = (value) => {
-    if (Array.isArray(value)) {
-      if (value.length > 0 && typeof value[0] === 'object') {
-        return (
-          <ul className="list-disc pl-5">
-            {value.map((item, idx) => (
-              <li key={idx}>{item.title || 'No title'}</li>
-            ))}
-          </ul>
-        );
-      }
-
-      return (
-        <ul className="list-disc pl-5">
-          {value.map((item, idx) => (
-            <li key={idx}>{item?.toString()}</li>
-          ))}
-        </ul>
-      );
-    } else if (typeof value === 'object' && value !== null) {
-      return (
-        <div className="pl-4 space-y-1">
-          {Object.entries(value).map(([k, v]) => (
-            <p key={k}>
-              <span className="font-semibold">{k}:</span> {v?.toString()}
-            </p>
-          ))}
-        </div>
-      );
-    } else {
-      return value?.toString();
-    }
-  };
-
 
   const actions = [
     {
@@ -132,9 +143,9 @@ const Orders = () => {
 
   return (
     <div className="p-4">
-      <p className='text-3xl pb-5 text-start text-primary font-bold'>Заказы:</p>
+      <p className="text-3xl pb-5 text-start text-primary font-bold">Заказы:</p>
 
-      {!data ? (
+      {!data || isLoadingPayStatus ? (
         <Loading />
       ) : (
         <>
@@ -143,17 +154,16 @@ const Orders = () => {
             columns={columns}
             onRowClick={(order) => openModal(order)}
             actions={actions}
+            className="w-full"
           />
 
           <CustomPagination
-            totalItems={orders.length}
+            totalItems={ordersWithPayStatus.length}
             itemsPerPage={itemsPerPage}
             currentPage={currentPage}
             onPageChange={setCurrentPage}
             totalPages={totalPages}
           />
-
-
         </>
       )}
 
@@ -171,7 +181,6 @@ const Orders = () => {
               className="bg-base-100 rounded-3xl shadow-2xl p-6 max-w-3xl w-full max-h-[90vh] overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Modal content */}
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-2xl font-bold text-primary">Детали заказа</h3>
                 <button className="btn btn-sm btn-circle btn-ghost" onClick={closeModal}>
@@ -236,7 +245,6 @@ const Orders = () => {
       </AnimatePresence>
     </div>
   );
-
 };
 
 export default Orders;
