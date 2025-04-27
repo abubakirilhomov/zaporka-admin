@@ -42,7 +42,6 @@ const Orders = () => {
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentOrders = ordersWithPayStatus.slice(indexOfFirstItem, indexOfLastItem);
 
-  // 👉 Har bir order uchun pay statusni olib kelish
   useEffect(() => {
     const fetchPayStatuses = async () => {
       if (!orders.length) return;
@@ -77,7 +76,7 @@ const Orders = () => {
     };
 
     fetchPayStatuses();
-  }, [data]); // data kelganda ishlaydi
+  }, [data]); 
 
   const openModal = (order) => {
     setModalData(order);
@@ -154,7 +153,6 @@ const Orders = () => {
             columns={columns}
             onRowClick={(order) => openModal(order)}
             actions={actions}
-            className="w-full"
           />
 
           <CustomPagination
@@ -188,7 +186,7 @@ const Orders = () => {
                 </button>
               </div>
 
-              <div className="mb-6 p-4 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-lg shadow-inner space-y-3">
+              <div className="mb-6 p-4 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-lg shadow-inner space-y-3 ">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {modalData.firstName && (
                     <div>
