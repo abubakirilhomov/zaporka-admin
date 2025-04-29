@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, NavLink } from "react-router-dom";
 import { SiShopware } from "react-icons/si";
-import { MdOutlineCancel } from "react-icons/md";
+import { MdAddBusiness, MdOutlineCancel } from "react-icons/md";
 import { TooltipComponent } from "@syncfusion/ej2-react-popups";
 
 import { useStateContext } from "../Contexts/ContextProvider";
@@ -13,6 +13,8 @@ import { BsKanban } from "react-icons/bs";
 import { MdOutlineInventory } from "react-icons/md";
 
 const Sidebar = () => {
+  const { activeMenu, setActiveMenu, screenSize, currentMode } = useStateContext();
+
   const links = [
     {
       title: "Административная Панель",
@@ -72,8 +74,6 @@ const Sidebar = () => {
     },
   ];
 
-  const { activeMenu, setActiveMenu, screenSize } = useStateContext();
-
   const handleCloseSidebar = () => {
     if (activeMenu && screenSize <= 900) {
       setActiveMenu(false);
@@ -96,7 +96,10 @@ const Sidebar = () => {
               className="items-center gap-3 ml-3 mt-4 flex text-xl font-extrabold tracking-tight text-base-content"
             >
               <div className="max-w-[60%]">
-                <img src="/images/logo.png" alt="zaporka" />
+                <img
+                  src={currentMode === "Dark" ? "/images/logodark.png" : "/images/logo.png"}
+                  alt="zaporka"
+                />
               </div>
             </Link>
             <TooltipComponent content="Menu" position="BottomCenter">

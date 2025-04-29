@@ -9,10 +9,15 @@ const ImagesSection = ({ register, errors, setValue, watch, onSwiperImagesChange
   const mainImage = watch("mainImage");
   const swiperImages = watch("swiperImages") || [];
 
-  // Обработка главной картинки
   const handleMainImageChange = (e) => {
     const file = e.target.files?.[0];
+    const maxSize = 5 * 1024 * 1024; // 5MB
+
     if (file) {
+      if (file.size > maxSize) {
+        alert("Главная картинка должна быть меньше 5MB");
+        return;
+      }
       setMainImagePreview(URL.createObjectURL(file));
       setValue("mainImage", file, { shouldValidate: true });
     } else {
@@ -21,12 +26,22 @@ const ImagesSection = ({ register, errors, setValue, watch, onSwiperImagesChange
     }
   };
 
-  // Обработка картинок для слайдера
   const handleLocalSwiperImagesChange = (e) => {
     const files = Array.from(e.target.files || []);
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    const oversizedFiles = files.filter((file) => file.size > maxSize);
+
+    if (oversizedFiles.length > 0) {
+      alert("Каждое изображение для слайдера должно быть меньше 5MB");
+      return;
+    }
+
     if (files.length > 0) {
       const limitedFiles = files.slice(0, 3 - swiperImages.length);
-      setSwiperImagePreviews([...swiperImagePreviews, ...limitedFiles.map((file) => URL.createObjectURL(file))]);
+      setSwiperImagePreviews([
+        ...swiperImagePreviews,
+        ...limitedFiles.map((file) => URL.createObjectURL(file)),
+      ]);
       setValue("swiperImages", [...swiperImages, ...limitedFiles], { shouldValidate: true });
       if (onSwiperImagesChange) onSwiperImagesChange(e);
     }
@@ -37,7 +52,7 @@ const ImagesSection = ({ register, errors, setValue, watch, onSwiperImagesChange
       if (mainImagePreview) URL.revokeObjectURL(mainImagePreview);
       swiperImagePreviews.forEach((url) => URL.revokeObjectURL(url));
     };
-  }, []);
+  }, [mainImagePreview, swiperImagePreviews]);
 
   const previewVariants = {
     hidden: { opacity: 0, scale: 0.8 },
@@ -46,7 +61,6 @@ const ImagesSection = ({ register, errors, setValue, watch, onSwiperImagesChange
 
   return (
     <div className="space-y-6">
-      {/* Главная картинка */}
       <div>
         <label className="flex items-center gap-2 mb-2">
           <MdImage className="text-lg text-base-content" />
@@ -58,7 +72,6 @@ const ImagesSection = ({ register, errors, setValue, watch, onSwiperImagesChange
           onChange={handleMainImageChange}
           className="file-input file-input-bordered w-full bg-base-100 focus:file-input-primary"
         />
-        {/* Ручная регистрация поля */}
         <input
           type="hidden"
           {...register("mainImage", {
@@ -79,7 +92,6 @@ const ImagesSection = ({ register, errors, setValue, watch, onSwiperImagesChange
         )}
       </div>
 
-      {/* Картинки для слайдера */}
       <div>
         <label className="flex items-center gap-2 mb-2">
           <MdSlideshow className="text-lg text-base-content" />
@@ -94,7 +106,6 @@ const ImagesSection = ({ register, errors, setValue, watch, onSwiperImagesChange
           onChange={handleLocalSwiperImagesChange}
           className="file-input file-input-bordered w-full bg-base-100 focus:file-input-primary"
         />
-        {/* Ручная регистрация поля */}
         <input
           type="hidden"
           {...register("swiperImages", {

@@ -22,7 +22,15 @@ const CreateProduct = () => {
 
   const handleSwiperImagesChange = (event) => {
     const files = Array.from(event.target.files);
-    if (files.length > 3 || (swiperImages.length + files.length) > 3) {
+    const maxSize = 5 * 1024 * 1024; // 5MB limit per image
+    const oversizedFiles = files.filter((file) => file.size > maxSize);
+
+    if (oversizedFiles.length > 0) {
+      toast.error("Каждое изображение должно быть меньше 5MB");
+      return;
+    }
+
+    if (files.length > 3 || swiperImages.length + files.length > 3) {
       toast.error("Можно выбрать максимум 3 изображения для слайдера");
       return;
     }
@@ -43,7 +51,11 @@ const CreateProduct = () => {
       const requiredFields = ["title", "mainImage", "price", "currency"];
       const missingFields = requiredFields.filter((field) => {
         if (field === "mainImage") {
-          return !data.mainImage || (Array.isArray(data.mainImage) && data.mainImage.length === 0) || (data.mainImage instanceof FileList && data.mainImage.length === 0);
+          return (
+            !data.mainImage ||
+            (Array.isArray(data.mainImage) && data.mainImage.length === 0) ||
+            (data.mainImage instanceof FileList && data.mainImage.length === 0)
+          );
         }
         return !data[field] || (Array.isArray(data[field]) && data[field].length === 0);
       });
@@ -52,8 +64,11 @@ const CreateProduct = () => {
         throw new Error(`Заполните обязательные поля: ${missingFields.join(", ")}`);
       }
 
-      // Отладка: что приходит в mainImage
-      console.log("mainImage:", data.mainImage);
+      // Проверка размера главной картинки
+      const maxSize = 5 * 1024 * 1024; // 5MB
+      if (data.mainImage && data.mainImage instanceof File && data.mainImage.size > maxSize) {
+        throw new Error("Главная картинка должна быть меньше 5MB");
+      }
 
       // Подготовка FormData
       const formData = new FormData();
@@ -95,11 +110,16 @@ const CreateProduct = () => {
         advantages: data.advantages || ["Corrosion-resistant", "High durability", "Easy installation"],
       };
 
+      // Добавим отладочную информацию
+      console.log("arrayFields:", arrayFields);
+
       Object.entries(arrayFields).forEach(([key, value]) => {
+        // Убедимся, что value — это массив
+        const arrayValue = Array.isArray(value) ? value : [value];
         if (key === "swiperImages") {
-          value.forEach((file) => formData.append("swiperImages", file));
+          arrayValue.forEach((file) => formData.append("swiperImages", file));
         } else {
-          formData.append(key, JSON.stringify(value));
+          arrayValue.forEach((item) => formData.append(`${key}[]`, item));
         }
       });
 
@@ -136,31 +156,33 @@ const CreateProduct = () => {
         throw new Error("Главная картинка обязательна");
       }
 
-      // Категория
-      if (data.category) {
-        formData.append("category", JSON.stringify(data.category));
+      // Категория (отправляем только _id как строку)
+      if (data.category && data.category._id) {
+        formData.append("category", data.category._id);
       } else {
-        formData.append(
-          "category",
-          JSON.stringify({
-            _id: "67c5de0605ea1bafcf7d16ef",
-            name: "kran",
-            slug: "kran",
-          })
-        );
+        formData.append("category", "67c5de0605ea1bafcf7d16ef");
       }
 
-      // Отправка запроса
+      // Отправка запроса с увеличенным таймаутом
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 секунд
+
       const response = await fetch(`${process.env.REACT_APP_API_URL}/api/v1/products`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
         },
         body: formData,
+        signal: controller.signal,
       });
 
+      clearTimeout(timeoutId);
+
       if (!response.ok) {
-        if (response.status === 403) {
+        if (response.status === 400) {
+          const error = await response.json();
+          throw new Error(error.message || "Ошибка валидации данных");
+        } else if (response.status === 403) {
           throw new Error("Доступ запрещен: проверьте токен авторизации или права доступа.");
         } else if (response.status === 520) {
           throw new Error("Ошибка сервера: попробуйте позже или обратитесь к администратору.");
@@ -172,8 +194,12 @@ const CreateProduct = () => {
       toast.success("Продукт успешно создан");
     } catch (error) {
       console.error("Ошибка при создании продукта:", error);
-      if (error.message.includes("Failed to fetch")) {
-        toast.error("Не удалось подключиться к серверу. Проверьте CORS или доступность сервера.");
+      if (error.name === "AbortError") {
+        toast.error("Запрос превысил время ожидания. Проверьте сервер или уменьшите размер файлов.");
+      } else if (error.message.includes("Failed to fetch")) {
+        toast.error(
+          "Не удалось подключиться к серверу. Проверьте CORS, доступность сервера или подключение к интернету."
+        );
       } else {
         toast.error(`Не удалось создать продукт: ${error.message}`);
       }
@@ -199,10 +225,7 @@ const CreateProduct = () => {
         <TechnicalSpecsSection register={register} errors={errors} />
         <AdditionalInfoSection register={register} errors={errors} />
 
-        <button
-          type="submit"
-          className="btn btn-primary w-full"
-        >
+        <button type="submit" className="btn btn-primary w-full">
           <MdOutlinePlaylistAdd className="mr-2" />
           Создать
         </button>

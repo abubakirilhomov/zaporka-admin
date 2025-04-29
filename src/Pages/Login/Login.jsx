@@ -21,16 +21,12 @@ const Login = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    console.log("Login data:", { username, password });
 
     try {
       const response = await postData(
         `${process.env.REACT_APP_API_URL}/api/v1/auth/login`,
         { username, password }
       );
-
-      console.table(response);
-      console.log(response);
 
       if (response?.token) {
         const userData = {
@@ -50,10 +46,10 @@ const Login = () => {
       } else {
         const errorMessage = response?.message || "Не удалось войти";
         toast.error(errorMessage);
-        console.log("Login response:", response);
+        console.log("Ответ при входе:", response);
       }
     } catch (err) {
-      console.error("Login Error:", err);
+      console.error("Ошибка входа:", err);
       toast.error("Произошла ошибка при входе.");
     }
   };
@@ -103,7 +99,7 @@ const Login = () => {
           variants={sideVariants}
         >
           <h2 className="text-3xl font-bold text-center mb-6 text-base-content">
-            Welcome Back
+            С возвращением
           </h2>
           <form onSubmit={handleLogin} className="space-y-6">
             <motion.div variants={inputVariants}>
@@ -111,7 +107,7 @@ const Login = () => {
                 htmlFor="username"
                 className="block text-sm font-medium text-base-content mb-1"
               >
-                Username
+                Имя пользователя
               </label>
               <input
                 type="text"
@@ -119,7 +115,7 @@ const Login = () => {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 className="input input-bordered w-full bg-base-100 focus:input-primary transition-all duration-300"
-                placeholder="Enter your username"
+                placeholder="Введите имя пользователя"
                 required
               />
             </motion.div>
@@ -128,7 +124,7 @@ const Login = () => {
                 htmlFor="password"
                 className="block text-sm font-medium text-base-content mb-1"
               >
-                Password
+                Пароль
               </label>
               <input
                 type="password"
@@ -136,7 +132,7 @@ const Login = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="input input-bordered w-full bg-base-100 focus:input-primary transition-all duration-300"
-                placeholder="Enter your password"
+                placeholder="Введите пароль"
                 required
               />
             </motion.div>
@@ -150,7 +146,7 @@ const Login = () => {
                   <span className="loading loading-spinner loading-sm"></span>
                 ) : (
                   <>
-                    <span>Login</span>
+                    <span>Войти</span>
                     <svg
                       className="w-5 h-5"
                       fill="none"
@@ -170,12 +166,6 @@ const Login = () => {
               </button>
             </motion.div>
           </form>
-          <p className="text-center text-sm text-base-content/70 mt-4">
-            Don’t have an account?{" "}
-            <a href="/signup" className="link link-primary">
-              Sign Up
-            </a>
-          </p>
         </motion.div>
 
         {/* Image Section */}
@@ -186,7 +176,7 @@ const Login = () => {
           <img
             className="w-full h-full object-cover"
             src={loginImage}
-            alt="Zaporka login"
+            alt="Вход Zaporka"
           />
         </motion.div>
       </motion.div>

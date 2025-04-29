@@ -66,7 +66,7 @@ const AdditionalInfoSection = ({ register, errors }) => (
         placeholder="e.g., 10, 20"
         className="input input-bordered w-full"
       />
-    </div>
+    </div>``
 
     <div>
       <label className="flex items-center gap-2">
