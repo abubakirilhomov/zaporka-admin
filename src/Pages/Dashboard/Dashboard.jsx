@@ -217,7 +217,6 @@ const Dashboard = () => {
           </motion.div>
         </div>
       </motion.div>
-      
     </div>
   );
 };
