@@ -101,6 +101,7 @@ const Orders = () => {
   const closeModal = () => {
     setIsModalOpen(false);
     setModalData(null);
+    //modal
   };
 
   const columns = [
