@@ -72,21 +72,6 @@ const Sidebar = () => {
         },
       ],
     },
-    {
-      title: "Инвентаризация",
-      links: [
-        {
-          name: "Приход",
-          route: "stock", // English route path (you may need to add this route in index.jsx)
-          icon: <MdOutlineInventory />,
-        },
-        {
-          name: "Добавить Приход",
-          route: "add-invoice", // English route path (you may need to add this route in index.jsx)
-          icon: <MdAddBusiness />,
-        },
-      ],
-    },
   ];
 
   const handleCloseSidebar = () => {

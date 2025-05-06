@@ -6,42 +6,54 @@ const ImagesSection = ({ register, errors, setValue, watch, onSwiperImagesChange
   const [mainImagePreview, setMainImagePreview] = useState(null);
   const [swiperImagePreviews, setSwiperImagePreviews] = useState([]);
 
-  // Watch form values
   const mainImage = watch("mainImage");
   const swiperImages = watch("swiperImages") || [];
 
-  // Handle main image upload
   const handleMainImageChange = (e) => {
     const file = e.target.files?.[0];
+    const maxSize = 5 * 1024 * 1024; // 5MB
+
     if (file) {
-      setValue("mainImage", file, { shouldValidate: true });
+      if (file.size > maxSize) {
+        alert("Главная картинка должна быть меньше 5MB");
+        return;
+      }
       setMainImagePreview(URL.createObjectURL(file));
+      setValue("mainImage", file, { shouldValidate: true });
     } else {
-      setValue("mainImage", null, { shouldValidate: true });
       setMainImagePreview(null);
+      setValue("mainImage", null, { shouldValidate: true });
     }
   };
 
-  // Handle swiper images upload with max 3 limit
   const handleLocalSwiperImagesChange = (e) => {
-    if (onSwiperImagesChange) {
-      onSwiperImagesChange(e); // Delegate to parent handler
-    }
     const files = Array.from(e.target.files || []);
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    const oversizedFiles = files.filter((file) => file.size > maxSize);
+
+    if (oversizedFiles.length > 0) {
+      alert("Каждое изображение для слайдера должно быть меньше 5MB");
+      return;
+    }
+
     if (files.length > 0) {
-      setSwiperImagePreviews(files.slice(0, 3 - swiperImages.length).map((file) => URL.createObjectURL(file)));
+      const limitedFiles = files.slice(0, 3 - swiperImages.length);
+      setSwiperImagePreviews([
+        ...swiperImagePreviews,
+        ...limitedFiles.map((file) => URL.createObjectURL(file)),
+      ]);
+      setValue("swiperImages", [...swiperImages, ...limitedFiles], { shouldValidate: true });
+      if (onSwiperImagesChange) onSwiperImagesChange(e);
     }
   };
 
-  // Cleanup object URLs on unmount
   useEffect(() => {
     return () => {
       if (mainImagePreview) URL.revokeObjectURL(mainImagePreview);
-      swiperImagePreviews.forEach((preview) => URL.revokeObjectURL(preview));
+      swiperImagePreviews.forEach((url) => URL.revokeObjectURL(url));
     };
   }, [mainImagePreview, swiperImagePreviews]);
 
-  // Animation variants
   const previewVariants = {
     hidden: { opacity: 0, scale: 0.8 },
     visible: { opacity: 1, scale: 1, transition: { duration: 0.3, ease: "easeOut" } },
@@ -49,54 +61,57 @@ const ImagesSection = ({ register, errors, setValue, watch, onSwiperImagesChange
 
   return (
     <div className="space-y-6">
-      {/* Main Image Upload */}
       <div>
         <label className="flex items-center gap-2 mb-2">
           <MdImage className="text-lg text-base-content" />
-          <span className="label-text text-base-content font-medium">Главная картинка *</span>
+          <span className="label-text text-base-content font-medium">Главная картинка</span>
         </label>
         <input
           type="file"
           accept="image/*"
-          {...register("mainImage", { required: "Main image is required" })}
           onChange={handleMainImageChange}
           className="file-input file-input-bordered w-full bg-base-100 focus:file-input-primary"
+        />
+        <input
+          type="hidden"
+          {...register("mainImage", {
+            required: "Главная картинка обязательна",
+          })}
         />
         {errors.mainImage && (
           <p className="text-error text-sm mt-1">{errors.mainImage.message}</p>
         )}
         {mainImagePreview && (
-          <motion.div
-            className="mt-4"
-            variants={previewVariants}
-            initial="hidden"
-            animate="visible"
-          >
+          <motion.div className="mt-4" variants={previewVariants} initial="hidden" animate="visible">
             <img
               src={mainImagePreview}
-              alt="Main Image Preview"
+              alt="Main Preview"
               className="w-32 h-32 object-cover rounded-lg shadow-md"
             />
           </motion.div>
         )}
       </div>
 
-      {/* Swiper Images Upload */}
       <div>
         <label className="flex items-center gap-2 mb-2">
           <MdSlideshow className="text-lg text-base-content" />
-          <span className="label-text text-base-content font-medium">Картинки для слайдера (макс. 3)</span>
+          <span className="label-text text-base-content font-medium">
+            Картинки для слайдера (макс. 3)
+          </span>
         </label>
         <input
           type="file"
           accept="image/*"
           multiple
-          {...register("swiperImages", {
-            validate: (files) =>
-              !files || files.length <= 3 || "Максимум 3 изображения разрешено",
-          })}
           onChange={handleLocalSwiperImagesChange}
           className="file-input file-input-bordered w-full bg-base-100 focus:file-input-primary"
+        />
+        <input
+          type="hidden"
+          {...register("swiperImages", {
+            validate: (value) =>
+              !value || value.length <= 3 || "Максимум 3 изображения разрешено",
+          })}
         />
         {errors.swiperImages && (
           <p className="text-error text-sm mt-1">{errors.swiperImages.message}</p>
@@ -106,16 +121,10 @@ const ImagesSection = ({ register, errors, setValue, watch, onSwiperImagesChange
             className="mt-4 flex flex-wrap gap-4"
             initial="hidden"
             animate="visible"
-            variants={{
-              visible: { transition: { staggerChildren: 0.1 } },
-            }}
+            variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
           >
             {swiperImagePreviews.map((preview, index) => (
-              <motion.div
-                key={index}
-                variants={previewVariants}
-                className="relative"
-              >
+              <motion.div key={index} variants={previewVariants} className="relative">
                 <img
                   src={preview}
                   alt={`Swiper Preview ${index + 1}`}
