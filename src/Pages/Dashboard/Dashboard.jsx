@@ -4,6 +4,8 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import ChartComponent from "../../Components/ChartComponent/ChartComponent";
 
+//abubakir tentak
+
 const Loader = () => (
   <div className="flex items-center justify-center h-80">
     <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-primary border-opacity-70"></div>
@@ -288,6 +290,7 @@ const Dashboard = () => {
                         display: true,
                       },
                     },
+
                   }}
                 />
               </div>
