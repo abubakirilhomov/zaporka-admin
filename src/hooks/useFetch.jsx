@@ -1,12 +1,17 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { logout } from "../store/slices/AuthSlice"; // Adjust path to your auth slice
 
-const useFetch = (baseUrl, options = {}, autoFetch = true) => {
+const useFetch = (baseUrl, options = {}, autoFetch = false) => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(autoFetch);
   const [error, setError] = useState(null);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   // Memoize options to prevent unnecessary re-renders
-  const stableOptions = JSON.stringify(options);
+  const stableOptions = useMemo(() => options, [options]);
 
   const fetchData = useCallback(
     async (url, overrideOptions = {}) => {
@@ -17,13 +22,21 @@ const useFetch = (baseUrl, options = {}, autoFetch = true) => {
 
       try {
         const response = await fetch(url, {
-          ...JSON.parse(stableOptions),
+          ...stableOptions,
           ...overrideOptions,
         });
 
         if (!response.ok) {
           const errorText = await response.text();
-          throw new Error(`Error: ${response.status} ${response.statusText} - ${errorText}`);
+          const errorMessage = `Error: ${response.status} ${response.statusText} - ${errorText} (URL: ${url})`;
+
+          if (response.status === 401 || response.status === 403) {
+            dispatch(logout()); // Dispatch logout action
+            navigate("/login"); // Navigate to login page
+            throw new Error("Unauthorized or Forbidden: Redirecting to login");
+          }
+
+          throw new Error(errorMessage);
         }
 
         const result = await response.json();
@@ -32,12 +45,12 @@ const useFetch = (baseUrl, options = {}, autoFetch = true) => {
       } catch (err) {
         const errorMessage = err.message || "An unknown error occurred";
         setError(errorMessage);
-        throw new Error(errorMessage); // Rethrow with a consistent message
+        throw new Error(errorMessage);
       } finally {
         setLoading(false);
       }
     },
-    [stableOptions]
+    [stableOptions, dispatch, navigate]
   );
 
   useEffect(() => {
@@ -48,25 +61,36 @@ const useFetch = (baseUrl, options = {}, autoFetch = true) => {
 
   const revalidate = () => fetchData(baseUrl);
 
-  const postData = async (url, body) =>
-    fetchData(url, {
+  const postData = async (url, body, additionalHeaders = {}) => {
+    const isFormData = body instanceof FormData;
+    const headers = isFormData
+      ? { ...stableOptions.headers, ...additionalHeaders }
+      : {
+          "Content-Type": "application/json",
+          ...stableOptions.headers,
+          ...additionalHeaders,
+        };
+
+    return fetchData(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json", ...options.headers },
-      body: JSON.stringify(body),
+      headers,
+      body: isFormData ? body : JSON.stringify(body),
     });
-  
+  };
+
   const putData = async (url, body) =>
     fetchData(url, {
       method: "PUT",
-      headers: { "Content-Type": "application/json", ...options.headers },
+      headers: { "Content-Type": "application/json", ...stableOptions.headers },
       body: JSON.stringify(body),
     });
 
   const deleteData = async (url) =>
     fetchData(url, {
       method: "DELETE",
-      headers: options.headers,
+      headers: stableOptions.headers,
     });
+
   return { data, loading, error, revalidate, postData, putData, deleteData };
 };
 

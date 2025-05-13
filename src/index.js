@@ -21,6 +21,8 @@ import Login from "./Pages/Login/Login";
 import ProtectedRoute from "./hooks/PrivateRoute";
 import Inventory from "./Pages/Inventory/Inventory";
 import AddInvoice from "./Pages/Inventory/AddInvoice";
+import CreateCategory from "./Pages/Categories/CreateCategory/CreateCategory";
+import CategoryDashboard from "./Pages/Categories/CategoryDashboard/CategoryDashboard";
 
 // Define your routes
 const router = createBrowserRouter([
@@ -97,6 +99,22 @@ const router = createBrowserRouter([
         element: (
           <ProtectedRoute>
             <Inventory/>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "create-catalogs",
+        element: (
+          <ProtectedRoute>
+            <CreateCategory/>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "categories",
+        element: (
+          <ProtectedRoute>
+            <CategoryDashboard/>
           </ProtectedRoute>
         ),
       },
