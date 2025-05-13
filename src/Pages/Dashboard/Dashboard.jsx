@@ -10,78 +10,58 @@ const Loader = () => (
 );
 
 const Dashboard = () => {
-  const user = useSelector((state) => state?.auth?.user?.username || "Гость");
+  const user = useSelector((state) => state?.auth?.user?.username);
+  const store = useSelector((state) => state);
+  const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:5000";
+  
 
-  const [usersData, setUsersData] = useState([]);
-  const [loadingUsers, setLoadingUsers] = useState(true);
-  const [errorUsers, setErrorUsers] = useState(null);
-  const [totalUsers, setTotalUsers] = useState(0);
-
-  const [categoriesData, setCategoriesData] = useState([]);
-  const [loadingCategories, setLoadingCategories] = useState(true);
-  const [errorCategories, setErrorCategories] = useState(null);
-
-  const token = localStorage.getItem("token");
-
-  const fetchUsersData = () => {
-    setLoadingUsers(true);
-    fetch("https://zaporka-backend.onrender.com/api/v1/users", {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
+  const [seaOrdersData, setSeaOrdersData] = useState({
+    labels: [],
+    datasets: [
+      {
+        label: "Морские заказы",
+        data: [],
+        backgroundColor: [
+          "rgba(54, 162, 235, 0.6)", // blue
+          "rgba(75, 192, 192, 0.6)", // teal
+          "rgba(255, 99, 132, 0.6)", // red
+        ],
+        borderColor: [
+          "rgba(54, 162, 235, 1)",
+          "rgba(75, 192, 192, 1)",
+          "rgba(255, 99, 132, 1)",
+        ],
+        borderWidth: 1,
       },
-    })
-      .then((res) => {
-        if (res.status === 403) throw new Error("Доступ запрещён. Проверьте токен.");
-        if (!res.ok) throw new Error("Ошибка при получении пользователей");
-        return res.json();
-      })
-      .then((data) => {
-        setTotalUsers(data.length);
-        const weekData = Array(7).fill(0);
-        const today = new Date();
+    ],
+  });
 
-        data.forEach((user) => {
-          const createdDate = new Date(user.createdAt);
-          if (isNaN(createdDate)) return;
-          const daysDiff = Math.floor((today - createdDate) / (1000 * 60 * 60 * 24));
-          if (daysDiff >= 0 && daysDiff < 7) {
-            weekData[6 - daysDiff]++;
-          }
-        });
-
-        setUsersData(weekData);
-        setErrorUsers(null);
-      })
-      .catch((err) => setErrorUsers(err.message))
-      .finally(() => setLoadingUsers(false));
+  const containerVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.5, ease: "easeOut", staggerChildren: 0.2 },
+    },
   };
 
-  const fetchCategoriesData = () => {
-    setLoadingCategories(true);
-    fetch("https://zaporka-backend.onrender.com/api/v1/categories")
-      .then((res) => {
-        if (!res.ok) throw new Error("Ошибка при получении категорий");
-        return res.json();
-      })
-      .then((data) => {
-        setCategoriesData(data);
-        setErrorCategories(null);
-      })
-      .catch((err) => setErrorCategories(err.message))
-      .finally(() => setLoadingCategories(false));
+  const itemVariants = {
+    hidden: { opacity: 0, scale: 0.95 },
+    visible: { opacity: 1, scale: 1, transition: { duration: 0.4, ease: "easeOut" } },
   };
 
-  useEffect(() => {
-    if (!token) {
-      setErrorUsers("Отсутствует токен авторизации.");
-      setLoadingUsers(false);
-      return;
-    }
-
-    fetchUsersData();
-    fetchCategoriesData();
-  }, [token]);
+  const barData = {
+    labels: ["Янв", "Фев", "Мар", "Апр", "Май", "Июн"],
+    datasets: [
+      {
+        label: "Продажи",
+        data: [12, 19, 3, 5, 2, 3],
+        backgroundColor: "rgba(75, 192, 192, 0.6)",
+        borderColor: "rgba(75, 192, 192, 1)",
+        borderWidth: 1,
+      },
+    ],
+  };
 
   const usersChartData = {
     labels: ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"],
@@ -99,14 +79,22 @@ const Dashboard = () => {
     ],
   };
 
-  const categoriesChartData = {
-    labels: categoriesData.map((category) => category.name),
+  const pieData = {
+    labels: ["Красный", "Синий", "Жёлтый"],
     datasets: [
       {
-        label: "Продажа по категориям",
-        data: categoriesData.map((category) => category.sales || 0),
-        backgroundColor: categoriesData.map((_, index) => `rgba(${index * 50}, ${index * 30}, 200, 0.6)`),
-        borderColor: categoriesData.map((_, index) => `rgba(${index * 50}, ${index * 30}, 200, 1)`),
+        label: "Категории",
+        data: [300, 50, 100],
+        backgroundColor: [
+          "rgba(255, 99, 132, 0.6)",
+          "rgba(54, 162, 235, 0.6)",
+          "rgba(255, 206, 86, 0.6)",
+        ],
+        borderColor: [
+          "rgba(255, 99, 132, 1)",
+          "rgba(54, 162, 235, 1)",
+          "rgba(255, 206, 86, 1)",
+        ],
         borderWidth: 1,
       },
     ],
@@ -116,11 +104,24 @@ const Dashboard = () => {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: { position: "top", labels: { color: "#1f2937", font: { size: 14 } } },
-      title: { display: true, color: "#1f2937", font: { size: 16, weight: "bold" } },
+      legend: {
+        position: "top",
+        labels: {
+          color: "#e5e7eb",
+        },
+      },
+      title: {
+        display: true,
+        text: "Статусы заказов",
+        color: "#e5e7eb",
+      },
     },
     scales: {
-      x: { ticks: { color: "#1f2937", font: { size: 12 } }, grid: { display: false } },
+      x: {
+        ticks: {
+          color: "#e5e7eb",
+        },
+      },
       y: {
         ticks: { color: "#1f2937", font: { size: 12 } },
         beginAtZero: true,

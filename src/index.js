@@ -11,7 +11,6 @@ import { ContextProvider } from "./Contexts/ContextProvider";
 import App from "./App";
 import Dashboard from "./Pages/Dashboard/Dashboard";
 import Orders from "./Pages/Orders/Orders";
-import Reviews from "./Pages/Reviews/Reviews";
 import CreateProduct from "./Pages/Products/CreateProduct/CreateProduct";
 import EditProduct from "./Pages/Products/EditProduct/EditProduct";
 import ProductsDashboard from "./Pages/Products/ProductsDashboard/ProductsDashboard";
@@ -42,14 +41,6 @@ const router = createBrowserRouter([
         element: (
           <ProtectedRoute>
             <Orders />
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: "reviews",
-        element: (
-          <ProtectedRoute>
-            <Reviews />
           </ProtectedRoute>
         ),
       },
