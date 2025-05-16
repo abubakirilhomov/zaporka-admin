@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import BasicInfoSection from "../../../Components/BasicInfoSection/BasicInfoSection";
@@ -19,6 +19,38 @@ const CreateProduct = () => {
   const token = localStorage.getItem("token");
   const mainImage = watch("mainImage");
   const swiperImages = watch("swiperImages") || [];
+  const [categories, setCategories] = useState([]);
+  const [isLoadingCategories, setIsLoadingCategories] = useState(false);
+
+  // Fetch categories on component mount
+  useEffect(() => {
+    const fetchCategories = async () => {
+      setIsLoadingCategories(true);
+      try {
+        const response = await fetch("https://zaporka-backend.onrender.com/api/v1/categories", {
+          method: "GET",
+          headers: {
+            accept: "*/*",
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error("Ошибка при загрузке категорий");
+        }
+
+        const data = await response.json();
+        console.log("Полученные категории:", data); // Log API response
+        setCategories(data); // Assuming API returns an array of category objects with _id and name
+      } catch (error) {
+        console.error("Ошибка при загрузке категорий:", error);
+        toast.error(`Не удалось загрузить категории: ${error.message}`);
+      } finally {
+        setIsLoadingCategories(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   const handleSwiperImagesChange = (event) => {
     const files = Array.from(event.target.files);
@@ -47,8 +79,11 @@ const CreateProduct = () => {
         throw new Error("Токен авторизации отсутствует. Пожалуйста, войдите в систему.");
       }
 
+      // Логирование выбранной категории
+      console.log("Выбранная категория (_id):", data.category);
+
       // Валидация обязательных полей
-      const requiredFields = ["title", "mainImage", "price", "currency"];
+      const requiredFields = ["title", "mainImage", "price", "currency", "category"];
       const missingFields = requiredFields.filter((field) => {
         if (field === "mainImage") {
           return (
@@ -56,6 +91,9 @@ const CreateProduct = () => {
             (Array.isArray(data.mainImage) && data.mainImage.length === 0) ||
             (data.mainImage instanceof FileList && data.mainImage.length === 0)
           );
+        }
+        if (field === "category") {
+          return !data.category;
         }
         return !data[field] || (Array.isArray(data[field]) && data[field].length === 0);
       });
@@ -110,11 +148,7 @@ const CreateProduct = () => {
         advantages: data.advantages || ["Corrosion-resistant", "High durability", "Easy installation"],
       };
 
-      // Добавим отладочную информацию
-      console.log("arrayFields:", arrayFields);
-
       Object.entries(arrayFields).forEach(([key, value]) => {
-        // Убедимся, что value — это массив
         const arrayValue = Array.isArray(value) ? value : [value];
         if (key === "swiperImages") {
           arrayValue.forEach((file) => formData.append("swiperImages", file));
@@ -156,12 +190,8 @@ const CreateProduct = () => {
         throw new Error("Главная картинка обязательна");
       }
 
-      // Категория (отправляем только _id как строку)
-      if (data.category && data.category._id) {
-        formData.append("category", data.category._id);
-      } else {
-        formData.append("category", "67c5de0605ea1bafcf7d16ef");
-      }
+      // Категория
+      formData.append("category", data.category);
 
       // Отправка запроса с увеличенным таймаутом
       const controller = new AbortController();
@@ -188,7 +218,7 @@ const CreateProduct = () => {
           throw new Error("Ошибка сервера: попробуйте позже или обратитесь к администратору.");
         }
         const error = await response.json();
-        throw new Error(error.message || "Ошибка при создании продукта");
+        throw new Error(error.message || "Ошибка при создания продукта");
       }
 
       toast.success("Продукт успешно создан");
@@ -207,29 +237,64 @@ const CreateProduct = () => {
   };
 
   return (
-    <div className="max-w-[90%] mx-auto p-4 bg-base-100 shadow-lg rounded-lg">
-      <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-        <MdOutlinePlaylistAdd className="text-3xl text-base-content" />
-        Создать новый продукт
-      </h2>
+    <div className="container mx-auto p-4 sm:p-6 md:p-8 max-w-4xl">
+      <div className="bg-base-100 shadow-xl rounded-lg p-6 sm:p-8 transition-all duration-300">
+        <h2 className="text-2xl sm:text-3xl font-bold mb-6 flex items-center gap-3 text-base-content">
+          <MdOutlinePlaylistAdd className="text-3xl sm:text-4xl" />
+          Создать новый продукт
+        </h2>
 
-      <form onSubmit={handleSubmit(handleCreateProduct)} className="space-y-6">
-        <BasicInfoSection register={register} errors={errors} />
-        <ImagesSection
-          register={register}
-          errors={errors}
-          setValue={setValue}
-          watch={watch}
-          onSwiperImagesChange={handleSwiperImagesChange}
-        />
-        <TechnicalSpecsSection register={register} errors={errors} />
-        <AdditionalInfoSection register={register} errors={errors} />
+        <form onSubmit={handleSubmit(handleCreateProduct)} className="space-y-6">
+          <BasicInfoSection register={register} errors={errors} />
 
-        <button type="submit" className="btn btn-primary w-full">
-          <MdOutlinePlaylistAdd className="mr-2" />
-          Создать
-        </button>
-      </form>
+          {/* Category Select - Placed after BasicInfoSection (assuming Description is there) */}
+          <div className="form-control">
+            <label htmlFor="category" className="label">
+              <span className="label-text font-medium text-base-content">Категория</span>
+            </label>
+            <select
+              id="category"
+              {...register("category", { required: "Категория обязательна" })}
+              className="select select-bordered w-full bg-base-100 focus:outline-none focus:ring-2 focus:ring-primary transition-all duration-200"
+              defaultValue=""
+            >
+              <option value="" disabled>
+                Выберите категорию
+              </option>
+              {isLoadingCategories ? (
+                <option disabled>Загрузка категорий...</option>
+              ) : (
+                categories.map((category) => (
+                  <option key={category._id} value={category._id}>
+                    {category.name}
+                  </option>
+                ))
+              )}
+            </select>
+            {errors.category && (
+              <span className="text-error text-sm mt-1">{errors.category.message}</span>
+            )}
+          </div>
+
+          <ImagesSection
+            register={register}
+            errors={errors}
+            setValue={setValue}
+            watch={watch}
+            onSwiperImagesChange={handleSwiperImagesChange}
+          />
+          <TechnicalSpecsSection register={register} errors={errors} />
+          <AdditionalInfoSection register={register} errors={errors} />
+
+          <button
+            type="submit"
+            className="btn btn-primary w-full mt-8 hover:scale-105 transition-transform duration-200"
+          >
+            <MdOutlinePlaylistAdd className="mr-2 text-xl" />
+            Создать
+          </button>
+        </form>
+      </div>
     </div>
   );
 };
