@@ -1,3 +1,4 @@
+// CreateProduct.js
 import React from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
@@ -6,6 +7,7 @@ import ImagesSection from "./ImagesSection/ImagesSection";
 import TechnicalSpecsSection from "./TechnicalSpecsSection/TechnicalSpecsSection";
 import AdditionalInfoSection from "./AdditionalInfoSection/AdditionalInfoSection";
 import { MdOutlinePlaylistAdd } from "react-icons/md";
+import useFetch from "../../../hooks/useFetch";
 
 const CreateProduct = () => {
   const {
@@ -19,6 +21,11 @@ const CreateProduct = () => {
   const token = localStorage.getItem("token");
   const mainImage = watch("mainImage");
   const swiperImages = watch("swiperImages") || [];
+  const { data, error, loading } = useFetch(
+    `${process.env.REACT_APP_API_URL}/api/v1/categories`,
+    {},
+    true
+  );
 
   const handleSwiperImagesChange = (event) => {
     const files = Array.from(event.target.files);
@@ -42,13 +49,11 @@ const CreateProduct = () => {
 
   const handleCreateProduct = async (data) => {
     try {
-      // Проверка токена
       if (!token) {
         throw new Error("Токен авторизации отсутствует. Пожалуйста, войдите в систему.");
       }
 
-      // Валидация обязательных полей
-      const requiredFields = ["title", "mainImage", "price", "currency"];
+      const requiredFields = ["title", "mainImage", "price", "currency", "category"];
       const missingFields = requiredFields.filter((field) => {
         if (field === "mainImage") {
           return (
@@ -64,16 +69,12 @@ const CreateProduct = () => {
         throw new Error(`Заполните обязательные поля: ${missingFields.join(", ")}`);
       }
 
-      // Проверка размера главной картинки
       const maxSize = 5 * 1024 * 1024; // 5MB
       if (data.mainImage && data.mainImage instanceof File && data.mainImage.size > maxSize) {
         throw new Error("Главная картинка должна быть меньше 5MB");
       }
 
-      // Подготовка FormData
       const formData = new FormData();
-
-      // Базовые поля
       const basicFields = {
         title: data.title || "High-Pressure Steel Pipes",
         description: data.description || "A durable steel pipe designed for high-pressure industrial applications.",
@@ -92,7 +93,6 @@ const CreateProduct = () => {
         formData.append(key, value);
       });
 
-      // Поля с массивами
       const arrayFields = {
         price: data.price || [150000, 175000],
         swiperImages: data.swiperImages || [],
@@ -110,11 +110,7 @@ const CreateProduct = () => {
         advantages: data.advantages || ["Corrosion-resistant", "High durability", "Easy installation"],
       };
 
-      // Добавим отладочную информацию
-      console.log("arrayFields:", arrayFields);
-
       Object.entries(arrayFields).forEach(([key, value]) => {
-        // Убедимся, что value — это массив
         const arrayValue = Array.isArray(value) ? value : [value];
         if (key === "swiperImages") {
           arrayValue.forEach((file) => formData.append("swiperImages", file));
@@ -123,7 +119,6 @@ const CreateProduct = () => {
         }
       });
 
-      // Технические характеристики
       const technicalSpecs = {
         thickness: data.thickness || "5mm",
         SDR: data.SDR || 11,
@@ -137,7 +132,6 @@ const CreateProduct = () => {
         formData.append(key, value);
       });
 
-      // Главная картинка
       if (data.mainImage) {
         if (data.mainImage instanceof FileList) {
           if (data.mainImage.length > 0) {
@@ -156,16 +150,11 @@ const CreateProduct = () => {
         throw new Error("Главная картинка обязательна");
       }
 
-      // Категория (отправляем только _id как строку)
-      if (data.category && data.category._id) {
-        formData.append("category", data.category._id);
-      } else {
-        formData.append("category", "67c5de0605ea1bafcf7d16ef");
-      }
+      // Category (already handled as a string _id from the select)
+      formData.append("category", data.category || "67c5de0605ea1bafcf7d16ef");
 
-      // Отправка запроса с увеличенным таймаутом
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 секунд
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
 
       const response = await fetch(`${process.env.REACT_APP_API_URL}/api/v1/products`, {
         method: "POST",
@@ -214,7 +203,11 @@ const CreateProduct = () => {
       </h2>
 
       <form onSubmit={handleSubmit(handleCreateProduct)} className="space-y-6">
-        <BasicInfoSection register={register} errors={errors} />
+        <BasicInfoSection
+          register={register}
+          errors={errors}
+          categories={data || []} // Pass categories to BasicInfoSection
+        />
         <ImagesSection
           register={register}
           errors={errors}
