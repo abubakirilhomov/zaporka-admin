@@ -45,7 +45,7 @@ const CustomTable = ({
                 <tr
                   key={row._id || index}
                   onClick={() => onRowClick && onRowClick(row)}
-                  className="cursor-pointer hover:bg-gray-100 border"
+                  className="cursor-pointer hover:bg-base-100 border"
                 >
                   {columns.map((column) => (
                     <td key={column.key} className="border p-2">
