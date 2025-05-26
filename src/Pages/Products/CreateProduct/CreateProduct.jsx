@@ -1,6 +1,5 @@
-import React, { useState } from "react";
+import React from "react";
 import { useForm } from "react-hook-form";
-import useFetch from "../../../hooks/useFetch";
 import { toast } from "react-toastify";
 import BasicInfoSection from "../../../Components/BasicInfoSection/BasicInfoSection";
 import ImagesSection from "./ImagesSection/ImagesSection";
@@ -9,104 +8,211 @@ import AdditionalInfoSection from "./AdditionalInfoSection/AdditionalInfoSection
 import { MdOutlinePlaylistAdd } from "react-icons/md";
 
 const CreateProduct = () => {
-  const { loading, error, postData } = useFetch(
-    `${process.env.REACT_APP_API_URL}/api/v1/products`,
-    {},
-    false
-  );
   const {
     register,
     handleSubmit,
     formState: { errors },
     setValue,
     watch,
-    trigger, // Added to manually trigger validation
+    trigger,
   } = useForm();
-
-  // Watch form values
+  const token = localStorage.getItem("token");
   const mainImage = watch("mainImage");
   const swiperImages = watch("swiperImages") || [];
-  console.log("Main Image:", mainImage);
-  console.log("Swiper Images (Watch):", swiperImages);
 
   const handleSwiperImagesChange = (event) => {
     const files = Array.from(event.target.files);
-    if (files.length > 3 || (swiperImages.length + files.length) > 3) {
+    const maxSize = 5 * 1024 * 1024; // 5MB limit per image
+    const oversizedFiles = files.filter((file) => file.size > maxSize);
+
+    if (oversizedFiles.length > 0) {
+      toast.error("Каждое изображение должно быть меньше 5MB");
+      return;
+    }
+
+    if (files.length > 3 || swiperImages.length + files.length > 3) {
       toast.error("Можно выбрать максимум 3 изображения для слайдера");
       return;
     }
 
     const newFiles = [...swiperImages, ...files].slice(0, 3);
     setValue("swiperImages", newFiles, { shouldValidate: true });
-    trigger("swiperImages"); // Manually trigger validation
+    trigger("swiperImages");
   };
 
   const handleCreateProduct = async (data) => {
     try {
+      // Проверка токена
+      if (!token) {
+        throw new Error("Токен авторизации отсутствует. Пожалуйста, войдите в систему.");
+      }
+
+      // Валидация обязательных полей
+      const requiredFields = ["title", "mainImage", "price", "currency"];
+      const missingFields = requiredFields.filter((field) => {
+        if (field === "mainImage") {
+          return (
+            !data.mainImage ||
+            (Array.isArray(data.mainImage) && data.mainImage.length === 0) ||
+            (data.mainImage instanceof FileList && data.mainImage.length === 0)
+          );
+        }
+        return !data[field] || (Array.isArray(data[field]) && data[field].length === 0);
+      });
+
+      if (missingFields.length > 0) {
+        throw new Error(`Заполните обязательные поля: ${missingFields.join(", ")}`);
+      }
+
+      // Проверка размера главной картинки
+      const maxSize = 5 * 1024 * 1024; // 5MB
+      if (data.mainImage && data.mainImage instanceof File && data.mainImage.size > maxSize) {
+        throw new Error("Главная картинка должна быть меньше 5MB");
+      }
+
+      // Подготовка FormData
       const formData = new FormData();
-      console.log("Form Data being constructed:", data);
 
-      formData.append("title", data.title || "");
-      formData.append("description", data.description || "");
-      formData.append("stock", Number(data.stock) || 0);
-      formData.append("price", JSON.stringify(data.price?.split(",").map(Number).filter(Boolean) || []));
-      formData.append("currency", data.currency || "UZS");
+      // Базовые поля
+      const basicFields = {
+        title: data.title || "High-Pressure Steel Pipes",
+        description: data.description || "A durable steel pipe designed for high-pressure industrial applications.",
+        stock: data.stock || 2571,
+        currency: data.currency || "UZS",
+        availabilitiy: data.availabilitiy !== undefined ? data.availabilitiy : true,
+        manufacturer: data.manufacturer || "SteelCo",
+        model: data.model || "SP-500",
+        standart: data.standart || "DIN EN 10255",
+        serviceLife: data.serviceLife || "20 years",
+        construction: data.construction || "Tubular",
+        accession: data.accession || "Flanged",
+      };
 
-      if (data.mainImage && data.mainImage.length > 0) {
-        formData.append("mainImage", data.mainImage[0]); // Ensure single file
+      Object.entries(basicFields).forEach(([key, value]) => {
+        formData.append(key, value);
+      });
+
+      // Поля с массивами
+      const arrayFields = {
+        price: data.price || [150000, 175000],
+        swiperImages: data.swiperImages || [],
+        sizeInInch: data.sizeInInch || ["1/2", "3/4"],
+        sizeInmm: data.sizeInmm || [15, 20],
+        DN: data.DN || [15, 20],
+        type: data.type || ["Seamless", "Welded"],
+        surfaceMaterial: data.surfaceMaterial || ["Galvanized", "Black Oxide"],
+        workEnv: data.workEnv || ["Water", "Gas", "Oil"],
+        nominalPressure: data.nominalPressure || ["PN16", "PN25"],
+        workingPressure: data.workingPressure || ["10 bar", "15 bar"],
+        minPressure: data.minPressure || ["1 bar", "2 bar"],
+        maxPressure: data.maxPressure || ["20 bar", "25 bar"],
+        application: data.application || ["Plumbing", "Industrial Piping"],
+        advantages: data.advantages || ["Corrosion-resistant", "High durability", "Easy installation"],
+      };
+
+      // Добавим отладочную информацию
+      console.log("arrayFields:", arrayFields);
+
+      Object.entries(arrayFields).forEach(([key, value]) => {
+        // Убедимся, что value — это массив
+        const arrayValue = Array.isArray(value) ? value : [value];
+        if (key === "swiperImages") {
+          arrayValue.forEach((file) => formData.append("swiperImages", file));
+        } else {
+          arrayValue.forEach((item) => formData.append(`${key}[]`, item));
+        }
+      });
+
+      // Технические характеристики
+      const technicalSpecs = {
+        thickness: data.thickness || "5mm",
+        SDR: data.SDR || 11,
+        rotationAngle: data.rotationAngle || "90°",
+        material: data.material || "Carbon Steel",
+        steelGrade: data.steelGrade || "S235",
+        workEnvTemperature: data.workEnvTemperature || "-20°C to 120°C",
+      };
+
+      Object.entries(technicalSpecs).forEach(([key, value]) => {
+        formData.append(key, value);
+      });
+
+      // Главная картинка
+      if (data.mainImage) {
+        if (data.mainImage instanceof FileList) {
+          if (data.mainImage.length > 0) {
+            formData.append("mainImage", data.mainImage[0]);
+          } else {
+            throw new Error("Выберите главную картинку");
+          }
+        } else if (Array.isArray(data.mainImage) && data.mainImage.length > 0) {
+          formData.append("mainImage", data.mainImage[0]);
+        } else if (data.mainImage instanceof File) {
+          formData.append("mainImage", data.mainImage);
+        } else {
+          throw new Error("Неверный формат главной картинки");
+        }
       } else {
-        throw new Error("Main image is required");
+        throw new Error("Главная картинка обязательна");
       }
 
-      if (swiperImages.length > 0) {
-        swiperImages.slice(0, 3).forEach((file) => {
-          formData.append("swiperImages", file);
-        });
+      // Категория (отправляем только _id как строку)
+      if (data.category && data.category._id) {
+        formData.append("category", data.category._id);
+      } else {
+        formData.append("category", "67c5de0605ea1bafcf7d16ef");
       }
 
-      formData.append("thickness", data.thickness || "");
-      formData.append("SDR", data.SDR ? Number(data.SDR) : "");
-      formData.append("rotationAngle", data.rotationAngle || "");
-      formData.append("material", data.material || "");
-      formData.append("sizeInInch", JSON.stringify(data.sizeInInch?.split(",").map(s => s.trim()) || []));
-      formData.append("sizeInmm", JSON.stringify(data.sizeInmm?.split(",").map(Number).filter(Boolean) || []));
-      formData.append("DN", JSON.stringify(data.DN?.split(",").map(Number).filter(Boolean) || []));
-      formData.append("type", JSON.stringify(data.type?.split(",").map(s => s.trim()) || []));
-      formData.append("manufacturer", data.manufacturer || "");
-      formData.append("standart", data.standart || "");
-      formData.append("surfaceMaterial", JSON.stringify(data.surfaceMaterial?.split(",").map(s => s.trim()) || []));
-      formData.append("workEnv", JSON.stringify(data.workEnv?.split(",").map(s => s.trim()) || []));
-      formData.append("steelGrade", data.steelGrade || "");
-      formData.append("workEnvTemperature", data.workEnvTemperature || "");
-      formData.append("nominalPressure", JSON.stringify(data.nominalPressure?.split(",").map(s => s.trim()) || []));
-      formData.append("workingPressure", JSON.stringify(data.workingPressure?.split(",").map(s => s.trim()) || []));
-      formData.append("minPressure", JSON.stringify(data.minPressure?.split(",").map(s => s.trim()) || []));
-      formData.append("maxPressure", JSON.stringify(data.maxPressure?.split(",").map(s => s.trim()) || []));
-      formData.append("model", data.model || "");
-      formData.append("application", JSON.stringify(data.application?.split(",").map(s => s.trim()) || []));
-      formData.append("construction", data.construction || "");
-      formData.append("serviceLife", data.serviceLife || "");
-      formData.append("accession", data.accession || "");
-      formData.append("advantages", JSON.stringify(data.advantages?.split(",").map(s => s.trim()) || []));
+      // Отправка запроса с увеличенным таймаутом
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 секунд
 
-      const response = await postData(
-        `${process.env.REACT_APP_API_URL}/api/v1/products`,
-        formData,
-        { "Content-Type": "multipart/form-data" }
-      );
-      toast.success("Product created successfully");
-      console.log("Product created successfully:", response);
-    } catch (err) {
-      toast.error(`Error creating product: ${err.message || "Unknown error"}`);
-      console.error("Error details:", err);
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/v1/products`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        if (response.status === 400) {
+          const error = await response.json();
+          throw new Error(error.message || "Ошибка валидации данных");
+        } else if (response.status === 403) {
+          throw new Error("Доступ запрещен: проверьте токен авторизации или права доступа.");
+        } else if (response.status === 520) {
+          throw new Error("Ошибка сервера: попробуйте позже или обратитесь к администратору.");
+        }
+        const error = await response.json();
+        throw new Error(error.message || "Ошибка при создании продукта");
+      }
+
+      toast.success("Продукт успешно создан");
+    } catch (error) {
+      console.error("Ошибка при создании продукта:", error);
+      if (error.name === "AbortError") {
+        toast.error("Запрос превысил время ожидания. Проверьте сервер или уменьшите размер файлов.");
+      } else if (error.message.includes("Failed to fetch")) {
+        toast.error(
+          "Не удалось подключиться к серверу. Проверьте CORS, доступность сервера или подключение к интернету."
+        );
+      } else {
+        toast.error(`Не удалось создать продукт: ${error.message}`);
+      }
     }
   };
 
   return (
     <div className="max-w-[90%] mx-auto p-4 bg-base-100 shadow-lg rounded-lg">
       <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-        <MdOutlinePlaylistAdd className="text-3xl text-base-content" /> Создать новый продукт
+        <MdOutlinePlaylistAdd className="text-3xl text-base-content" />
+        Создать новый продукт
       </h2>
+
       <form onSubmit={handleSubmit(handleCreateProduct)} className="space-y-6">
         <BasicInfoSection register={register} errors={errors} />
         <ImagesSection
@@ -119,21 +225,10 @@ const CreateProduct = () => {
         <TechnicalSpecsSection register={register} errors={errors} />
         <AdditionalInfoSection register={register} errors={errors} />
 
-        <button
-          type="submit"
-          disabled={loading}
-          className={`btn btn-primary w-full ${loading ? "loading" : ""}`}
-        >
-          {loading ? (
-            <span className="loading loading-spinner loading-sm"></span>
-          ) : (
-            <>
-              <MdOutlinePlaylistAdd className="mr-2" /> Создать
-            </>
-          )}
+        <button type="submit" className="btn btn-primary w-full">
+          <MdOutlinePlaylistAdd className="mr-2" />
+          Создать
         </button>
-
-        {error && <p className="text-error text-sm mt-2">Ошибка: {error}</p>}
       </form>
     </div>
   );

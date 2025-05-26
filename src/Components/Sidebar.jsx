@@ -3,7 +3,7 @@ import { Link, NavLink } from "react-router-dom";
 import { SiShopware } from "react-icons/si";
 import { MdAddBusiness, MdOutlineCancel } from "react-icons/md";
 import { TooltipComponent } from "@syncfusion/ej2-react-popups";
-
+import { IoIosAddCircleOutline } from "react-icons/io";
 import { useStateContext } from "../Contexts/ContextProvider";
 import { FiShoppingBag } from "react-icons/fi";
 import { IoMdContacts } from "react-icons/io";
@@ -11,6 +11,7 @@ import { AiOutlineCalendar, AiOutlineShoppingCart, AiOutlineStock } from "react-
 import { RiContactsLine } from "react-icons/ri";
 import { BsKanban } from "react-icons/bs";
 import { MdOutlineInventory } from "react-icons/md";
+import { BiCategory } from "react-icons/bi";
 
 const Sidebar = () => {
   const { activeMenu, setActiveMenu, screenSize, currentMode } = useStateContext();
@@ -84,6 +85,21 @@ const Sidebar = () => {
           name: "Добавить Приход",
           route: "add-invoice", // English route path (you may need to add this route in index.jsx)
           icon: <MdAddBusiness />,
+        },
+      ],
+    },
+    {
+      title: "Каталог",
+      links: [
+        {
+          name: "Создать категорию",
+          route: "create-catalogs", // English route path (you may need to add this route in index.jsx)
+          icon: <IoIosAddCircleOutline />,
+        },
+        {
+          name: "Каталог",
+          route: "categories", // English route path (you may need to add this route in index.jsx)
+          icon: <BiCategory />,
         },
       ],
     },

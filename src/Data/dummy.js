@@ -518,15 +518,6 @@ export const links = [
       },
     ],
   },
-  {
-    title: 'Reviews',
-    links: [
-      {
-        name: 'reviews',
-        icon: <AiOutlineStock />,
-      },
-    ],
-  },
 ];
 
 export const cartData = [
