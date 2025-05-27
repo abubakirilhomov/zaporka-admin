@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import useFetch from '../../hooks/useFetch';
 import CustomTable from '../../Components/CustomTable/CustomTable';
-import { MdOutlinePlaylistAdd, MdClose, MdRefresh } from 'react-icons/md';
+import { MdOutlinePlaylistAdd, MdClose } from 'react-icons/md';
 import Loading from '../../Components/Loading/Loading';
 import CustomPagination from '../../Components/CustomPagination/CustomPagination';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -48,26 +48,27 @@ const Orders = () => {
       const updatedOrders = await Promise.all(
         orders.map(async (order) => {
           try {
-            const res = await fetch(`${process.env.REACT_APP_API_URL}/api/v1/orders/${order._id}`, {
+            const res = await fetch(`${process.env.REACT_APP_API_URL}/api/v1/orders/${order._id}/pay`, {
               headers,
             });
 
+            // Log the response URL for debugging
+            console.log(`Fetching pay status for order: ${order._id}`);
 
             if (!res.ok) {
-              console.error(`Ошибка получения данных заказа ${order._id}: ${res.statusText}`);
+              console.error(`Error fetching pay status for order ${order._id}: ${res.statusText}`);
               return {
                 ...order,
                 isPaid: false,
               };
             }
-
-            const orderData = await res.json();
+            const payData = await res.json();
             return {
               ...order,
-              isPaid: orderData.isPaid || false,
+              isPaid: payData.isPaid || false,
             };
           } catch (err) {
-            console.error(`Ошибка получения данных заказа ${order._id}:`, err);
+            console.error('Error fetching pay status', err);
             return {
               ...order,
               isPaid: false,
@@ -77,16 +78,10 @@ const Orders = () => {
       );
       setOrdersWithPayStatus(updatedOrders);
     } catch (error) {
-      console.error('Не удалось получить данные заказов:', error);
+      console.error('Failed to fetch pay statuses', error);
     } finally {
       setIsLoadingPayStatus(false);
     }
-  };
-
-  const handleRefreshPayStatus = async () => {
-    setIsLoadingPayStatus(true);
-    await fetchPayStatuses();
-    setIsLoadingPayStatus(false);
   };
 
   useEffect(() => {
@@ -101,7 +96,6 @@ const Orders = () => {
   const closeModal = () => {
     setIsModalOpen(false);
     setModalData(null);
-    //modal
   };
 
   const columns = [
@@ -134,16 +128,13 @@ const Orders = () => {
       key: 'isPaid',
       label: 'Статус оплаты',
       render: (value) => (
-        <span
-          className={`px-2 py-1 rounded-full text-xs font-bold ${
-            value ? 'bg-success text-base-300' : 'bg-error text-base-300'
-          }`}
-        >
-          {value ? 'Оплачено' : 'Не оплачено'}
+        <span className={`px-2 py-1 rounded-full text-xs font-bold ${value ? 'bg-success text-base-100' : 'bg-warning text-base-100'}`}>
+          {value ? 'Оплаченный' : 'Не Оплаченный'}
         </span>
       ),
     },
   ];
+
 
   const actions = [
     {
@@ -162,22 +153,18 @@ const Orders = () => {
 
   return (
     <div className="p-4">
-      <div className="flex items-center justify-between mb-4">
-        <p className="text-3xl pb-5 text-start text-primary font-bold">Заказы:</p>
-        <button
-          className="btn btn-success flex items-center gap-2"
-          onClick={handleRefreshPayStatus}
-          disabled={isLoadingPayStatus}
-        >
-          <MdRefresh />
-          {isLoadingPayStatus ? 'Загрузка...' : 'Обновить оплату'}
-        </button>
-      </div>
+      <p className="text-3xl pb-5 text-start text-primary font-bold">Заказы:</p>
 
       {!data || isLoadingPayStatus ? (
         <Loading />
       ) : (
         <>
+          <div className="flex items-center justify-between mb-4">
+            <button className="btn btn-primary" onClick={fetchPayStatuses}>
+              Обновить оплату
+            </button>
+          </div>
+
           <div className="overflow-x-auto w-full">
             <CustomTable
               data={currentOrders}
@@ -218,6 +205,7 @@ const Orders = () => {
                 </button>
               </div>
 
+
               <div className="mb-6 p-4 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-lg shadow-inner space-y-3">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {modalData.firstName && (
@@ -248,16 +236,12 @@ const Orders = () => {
                     <p className="text-sm font-medium text-base-content/70">Общая сумма:</p>
                     <p className="text-base-content">{modalData.totalPrice?.toLocaleString()} UZS</p>
                   </div>
-                  <div>
-                    <p className="text-sm font-medium text-base-content/70">Статус оплаты:</p>
-                    <p className="text-base-content">{modalData.isPaid ? 'Оплачено' : 'Не оплачено'}</p>
-                  </div>
                   {Array.isArray(modalData.products) && (
                     <div className="sm:col-span-2">
                       <p className="text-sm font-medium text-base-content/70">Товары:</p>
                       <ul className="list-disc list-inside text-base-content">
                         {modalData.products.map((product, idx) => (
-                          <li key={idx}>{product?.title || 'Без названия'}</li>
+                          <li key={idx}>{product?.title || "Без названия"}</li>
                         ))}
                       </ul>
                     </div>

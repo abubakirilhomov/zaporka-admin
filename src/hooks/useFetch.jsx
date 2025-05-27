@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { logout } from "../store/slices/AuthSlice"; // Adjust path to your auth slice
+import { logout } from "../store/slices/AuthSlice";
 
 const useFetch = (baseUrl, options = {}, autoFetch = false) => {
   const [data, setData] = useState(null);
@@ -10,29 +10,26 @@ const useFetch = (baseUrl, options = {}, autoFetch = false) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  // Memoize options to prevent unnecessary re-renders
   const stableOptions = useMemo(() => options, [options]);
 
   const fetchData = useCallback(
     async (url, overrideOptions = {}) => {
       if (!url) return;
-
       setLoading(true);
       setError(null);
-
+      console.log("worked")
       try {
         const response = await fetch(url, {
           ...stableOptions,
           ...overrideOptions,
         });
-
         if (!response.ok) {
           const errorText = await response.text();
           const errorMessage = `Error: ${response.status} ${response.statusText} - ${errorText} (URL: ${url})`;
 
           if (response.status === 401 || response.status === 403) {
-            dispatch(logout()); // Dispatch logout action
-            navigate("/login"); // Navigate to login page
+            dispatch(logout());
+            navigate("/login");
             throw new Error("Unauthorized or Forbidden: Redirecting to login");
           }
 
