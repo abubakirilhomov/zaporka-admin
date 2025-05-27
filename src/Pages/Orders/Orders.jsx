@@ -1,74 +1,71 @@
-import React, { useState, useEffect } from 'react';
-import useFetch from '../../hooks/useFetch';
-import CustomTable from '../../Components/CustomTable/CustomTable';
-import { MdOutlinePlaylistAdd, MdClose } from 'react-icons/md';
-import Loading from '../../Components/Loading/Loading';
-import CustomPagination from '../../Components/CustomPagination/CustomPagination';
-import { AnimatePresence, motion } from 'framer-motion';
+import React, { useState, useEffect, useRef } from "react";
+import { MdOutlinePlaylistAdd, MdClose, MdRefresh } from "react-icons/md";
+import CustomTable from "../../Components/CustomTable/CustomTable";
+import Loading from "../../Components/Loading/Loading";
+import CustomPagination from "../../Components/CustomPagination/CustomPagination";
+import { AnimatePresence, motion } from "framer-motion";
 
 const Orders = () => {
+  const token = localStorage.getItem("token");
   const apiUrl = `${process.env.REACT_APP_API_URL}/api/v1/orders`;
-  const token = localStorage.getItem('token');
+  const fetchedOnce = useRef(false);
 
   const headers = {
     Authorization: `Bearer ${token}`,
   };
 
-  const { data, refetch } = useFetch(apiUrl, { headers }, true);
-
+  const [orders, setOrders] = useState([]);
   const [ordersWithPayStatus, setOrdersWithPayStatus] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isLoadingPayStatus, setIsLoadingPayStatus] = useState(false);
-
-  const [modalData, setModalData] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [error, setError] = useState(null);
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  const orders = Array.isArray(data)
-    ? data.map((order) => ({
-        ...order,
-        firstName: order.firstName || '',
-        lastName: order.lastName || '',
-        phoneNumber: order.phoneNumber || '',
-        address: order.address || '',
-        totalPrice: order.totalPrice || 0,
-      }))
-    : [];
+  const [modalData, setModalData] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const totalPages = Math.ceil(ordersWithPayStatus.length / itemsPerPage);
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentOrders = ordersWithPayStatus.slice(indexOfFirstItem, indexOfLastItem);
 
-  const fetchPayStatuses = async () => {
-    if (!orders.length) return;
+  const fetchOrders = async () => {
+    setIsLoading(true);
+    try {
+      const res = await fetch(apiUrl, { headers });
+      if (!res.ok) throw new Error("Ошибка при загрузке заказов");
+      const data = await res.json();
+      setOrders((data || []).reverse());
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchPayStatuses = async (ordersList) => {
+    if (!Array.isArray(ordersList) || ordersList.length === 0) return;
     setIsLoadingPayStatus(true);
     try {
-      const updatedOrders = await Promise.all(
-        orders.map(async (order) => {
+      const updated = await Promise.all(
+        ordersList.map(async (order) => {
           try {
-            const res = await fetch(`${process.env.REACT_APP_API_URL}/api/v1/orders/${order._id}/pay`, {
+            const res = await fetch(`${process.env.REACT_APP_API_URL}/api/v1/orders/${order._id}`, {
               headers,
             });
-
-            // Log the response URL for debugging
-            console.log(`Fetching pay status for order: ${order._id}`);
-
-            if (!res.ok) {
-              console.error(`Error fetching pay status for order ${order._id}: ${res.statusText}`);
-              return {
-                ...order,
-                isPaid: false,
-              };
-            }
-            const payData = await res.json();
+            const orderData = await res.json();
             return {
               ...order,
-              isPaid: payData.isPaid || false,
+              firstName: order.firstName || "",
+              lastName: order.lastName || "",
+              phoneNumber: order.phoneNumber || "",
+              address: order.address || "",
+              totalPrice: order.totalPrice || 0,
+              isPaid: orderData?.isPaid || false,
             };
-          } catch (err) {
-            console.error('Error fetching pay status', err);
+          } catch {
             return {
               ...order,
               isPaid: false,
@@ -76,17 +73,17 @@ const Orders = () => {
           }
         })
       );
-      setOrdersWithPayStatus(updatedOrders);
-    } catch (error) {
-      console.error('Failed to fetch pay statuses', error);
+      setOrdersWithPayStatus(updated);
+    } catch (err) {
+      console.error("Ошибка статуса оплаты:", err);
     } finally {
       setIsLoadingPayStatus(false);
     }
   };
 
-  useEffect(() => {
-    fetchPayStatuses();
-  }, [data]);
+  const handleRefreshPayStatus = () => {
+    fetchPayStatuses(orders);
+  };
 
   const openModal = (order) => {
     setModalData(order);
@@ -94,54 +91,70 @@ const Orders = () => {
   };
 
   const closeModal = () => {
-    setIsModalOpen(false);
     setModalData(null);
+    setIsModalOpen(false);
   };
+
+  useEffect(() => {
+    if (!fetchedOnce.current) {
+      fetchedOnce.current = true;
+      fetchOrders();
+    }
+  }, []);
+
+  useEffect(() => {
+    if (orders.length > 0) {
+      fetchPayStatuses(orders);
+    }
+  }, [orders]);
 
   const columns = [
     {
-      key: 'firstName',
-      label: 'Имя',
-      render: (value) => value?.toString(),
+      key: "firstName",
+      label: "Имя",
+      render: (val) => val || "-",
     },
     {
-      key: 'lastName',
-      label: 'Фамилия',
-      render: (value) => value?.toString(),
+      key: "lastName",
+      label: "Фамилия",
+      render: (val) => val || "-",
     },
     {
-      key: 'phoneNumber',
-      label: 'Номер телефона',
-      render: (value) => value?.toString(),
+      key: "phoneNumber",
+      label: "Телефон",
+      render: (val) => val || "-",
     },
     {
-      key: 'address',
-      label: 'Адрес',
-      render: (value) => value?.toString(),
+      key: "address",
+      label: "Адрес",
+      render: (val) => val || "-",
     },
     {
-      key: 'totalPrice',
-      label: 'Общая сумма',
-      render: (value) => value?.toLocaleString() + ' UZS',
+      key: "totalPrice",
+      label: "Сумма",
+      render: (val) => `${val.toLocaleString()} UZS`,
     },
     {
-      key: 'isPaid',
-      label: 'Статус оплаты',
-      render: (value) => (
-        <span className={`px-2 py-1 rounded-full text-xs font-bold ${value ? 'bg-success text-base-100' : 'bg-warning text-base-100'}`}>
-          {value ? 'Оплаченный' : 'Не Оплаченный'}
+      key: "isPaid",
+      label: "Оплата",
+      render: (val) => (
+        <span
+          className={`px-2 py-1 rounded-full text-xs font-bold ${
+            val ? "bg-success text-base-300" : "bg-error text-base-300"
+          }`}
+        >
+          {val ? "Оплачено" : "Не оплачено"}
         </span>
       ),
     },
   ];
 
-
   const actions = [
     {
-      label: 'Посмотреть детали',
+      label: "Посмотреть детали",
       icon: <MdOutlinePlaylistAdd />,
       onClick: (order) => openModal(order),
-      className: 'btn-primary',
+      className: "btn-primary",
     },
   ];
 
@@ -151,38 +164,37 @@ const Orders = () => {
     exit: { opacity: 0, y: 50 },
   };
 
+  if (isLoading || isLoadingPayStatus) return <Loading />;
+  if (error) return <div className="text-error">{error}</div>;
+
   return (
     <div className="p-4">
-      <p className="text-3xl pb-5 text-start text-primary font-bold">Заказы:</p>
+      <div className="flex items-center justify-between mb-4">
+        <p className="text-3xl font-bold text-primary">Заказы</p>
+        <button
+          className="btn btn-success flex items-center gap-2"
+          onClick={handleRefreshPayStatus}
+          disabled={isLoadingPayStatus}
+        >
+          <MdRefresh />
+          {isLoadingPayStatus ? "Обновление..." : "Обновить оплату"}
+        </button>
+      </div>
 
-      {!data || isLoadingPayStatus ? (
-        <Loading />
-      ) : (
-        <>
-          <div className="flex items-center justify-between mb-4">
-            <button className="btn btn-primary" onClick={fetchPayStatuses}>
-              Обновить оплату
-            </button>
-          </div>
+      <CustomTable
+        data={currentOrders}
+        columns={columns}
+        onRowClick={openModal}
+        actions={actions}
+      />
 
-          <div className="overflow-x-auto w-full">
-            <CustomTable
-              data={currentOrders}
-              columns={columns}
-              onRowClick={(order) => openModal(order)}
-              actions={actions}
-            />
-          </div>
-
-          <CustomPagination
-            totalItems={ordersWithPayStatus.length}
-            itemsPerPage={itemsPerPage}
-            currentPage={currentPage}
-            onPageChange={setCurrentPage}
-            totalPages={totalPages}
-          />
-        </>
-      )}
+      <CustomPagination
+        totalItems={ordersWithPayStatus.length}
+        itemsPerPage={itemsPerPage}
+        currentPage={currentPage}
+        onPageChange={setCurrentPage}
+        totalPages={totalPages}
+      />
 
       <AnimatePresence>
         {isModalOpen && modalData && (
@@ -204,53 +216,46 @@ const Orders = () => {
                   <MdClose className="text-xl" />
                 </button>
               </div>
-
-
-              <div className="mb-6 p-4 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-lg shadow-inner space-y-3">
+              <div className="mb-6 p-4 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-lg space-y-3">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {modalData.firstName && (
-                    <div>
-                      <p className="text-sm font-medium text-base-content/70">Имя:</p>
-                      <p className="text-base-content">{modalData.firstName}</p>
-                    </div>
-                  )}
-                  {modalData.lastName && (
-                    <div>
-                      <p className="text-sm font-medium text-base-content/70">Фамилия:</p>
-                      <p className="text-base-content">{modalData.lastName}</p>
-                    </div>
-                  )}
-                  {modalData.phoneNumber && (
-                    <div>
-                      <p className="text-sm font-medium text-base-content/70">Номер телефона:</p>
-                      <p className="text-base-content">{modalData.phoneNumber}</p>
-                    </div>
-                  )}
-                  {modalData.address && (
-                    <div>
-                      <p className="text-sm font-medium text-base-content/70">Адрес:</p>
-                      <p className="text-base-content">{modalData.address}</p>
-                    </div>
-                  )}
                   <div>
-                    <p className="text-sm font-medium text-base-content/70">Общая сумма:</p>
-                    <p className="text-base-content">{modalData.totalPrice?.toLocaleString()} UZS</p>
+                    <p className="text-sm font-medium text-base-content/70">Имя:</p>
+                    <p>{modalData.firstName}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-base-content/70">Фамилия:</p>
+                    <p>{modalData.lastName}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-base-content/70">Телефон:</p>
+                    <p>{modalData.phoneNumber}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-base-content/70">Адрес:</p>
+                    <p>{modalData.address}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-base-content/70">Сумма:</p>
+                    <p>{modalData.totalPrice?.toLocaleString()} UZS</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-base-content/70">Статус оплаты:</p>
+                    <p>{modalData.isPaid ? "Оплачено" : "Не оплачено"}</p>
                   </div>
                   {Array.isArray(modalData.products) && (
                     <div className="sm:col-span-2">
                       <p className="text-sm font-medium text-base-content/70">Товары:</p>
-                      <ul className="list-disc list-inside text-base-content">
-                        {modalData.products.map((product, idx) => (
-                          <li key={idx}>{product?.title || "Без названия"}</li>
+                      <ul className="list-disc list-inside">
+                        {modalData.products.map((prod, idx) => (
+                          <li key={idx}>{prod?.title || "Без названия"}</li>
                         ))}
                       </ul>
                     </div>
                   )}
                 </div>
               </div>
-
-              <div className="mt-6 flex justify-end">
-                <button onClick={closeModal} className="btn btn-error px-4 py-2 rounded">
+              <div className="flex justify-end mt-6">
+                <button onClick={closeModal} className="btn btn-error">
                   Закрыть
                 </button>
               </div>
