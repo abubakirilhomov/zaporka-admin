@@ -22,7 +22,7 @@ const Sidebar = () => {
       links: [
         {
           name: "Панель",
-          route: "dashboard", // English route path
+          route: "", // English route path
           icon: <FiShoppingBag />,
         },
       ],

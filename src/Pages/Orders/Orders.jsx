@@ -37,7 +37,7 @@ const Orders = () => {
       const res = await fetch(apiUrl, { headers });
       if (!res.ok) throw new Error("Ошибка при загрузке заказов");
       const data = await res.json();
-      setOrders(data || []);
+      setOrders((data || []).reverse());
     } catch (err) {
       setError(err.message);
     } finally {
