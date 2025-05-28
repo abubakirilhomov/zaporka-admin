@@ -4,17 +4,20 @@ import CustomTable from "../../Components/CustomTable/CustomTable";
 import Loading from "../../Components/Loading/Loading";
 import CustomPagination from "../../Components/CustomPagination/CustomPagination";
 import { AnimatePresence, motion } from "framer-motion";
+import { ToastContainer, toast } from 'react-toastify';
+
 
 const Orders = () => {
   const token = localStorage.getItem("token");
   const apiUrl = `${process.env.REACT_APP_API_URL}/api/v1/orders`;
+  
   const fetchedOnce = useRef(false);
-
+  
   const headers = {
     Authorization: `Bearer ${token}`,
     "Content-Type": "application/json",
   };
-
+  
   const [orders, setOrders] = useState([]);
   const [ordersWithPayStatus, setOrdersWithPayStatus] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -27,11 +30,9 @@ const Orders = () => {
   const [modalData, setModalData] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // New state for payment status select in modal
   const [paymentStatus, setPaymentStatus] = useState(false);
-  // New state for loading status update
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
-
+  
   const totalPages = Math.ceil(ordersWithPayStatus.length / itemsPerPage);
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -62,6 +63,8 @@ const Orders = () => {
               headers,
             });
             const orderData = await res.json();
+            console.log("ORDER DATA:", orderData);
+            
             return {
               ...order,
               firstName: order.firstName || "",
@@ -92,10 +95,13 @@ const Orders = () => {
   };
 
   const openModal = (order) => {
+    console.log("ORDER DATA:", order);
     setModalData(order);
-    setPaymentStatus(order.isPaid); // Set the current status in modal state
+    setPaymentStatus(order.isPaid);
+    console.log("MODAL DATA:", modalData);
     setIsModalOpen(true);
   };
+  
 
   const closeModal = () => {
     setModalData(null);
@@ -106,33 +112,53 @@ const Orders = () => {
     const val = e.target.value === "true"; // string to boolean
     setPaymentStatus(val);
   };
-
   const handleChangeStatus = async () => {
-    if (!modalData) return;
-
+    if (!modalData || !modalData._id) {
+      console.error("modalData yo'q");
+      return;
+    }
+  
     setIsUpdatingStatus(true);
     try {
-      const res = await fetch(`${import.meta.env.REACT_APP_API_URL}/api/orders/${modalData._id}`, {
-        method: "PATCH", 
-        headers,
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/v1/orders/${modalData._id}/pay`, {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({ isPaid: paymentStatus }),
       });
-
-      if (!res.ok) throw new Error("Ошибка при обновлении статуса оплаты");
-
-      setOrdersWithPayStatus((prev) =>
-        prev.map((order) =>
-          order._id === modalData._id ? { ...order, isPaid: paymentStatus } : order
+  
+      if (!response.ok) {
+        if (response.status === 403) {
+          throw new Error("Ruxsat yo‘q (403). Token noto‘g‘ri yoki yo‘q.");
+        }
+        throw new Error("Statusni yangilashda xatolik");
+      }
+  
+      const updatedOrder = await response.json();
+  
+      setOrders(prev =>
+        prev.map(order =>
+          order._id === updatedOrder._id ? updatedOrder : order
         )
       );
-      setModalData((prev) => ({ ...prev, isPaid: paymentStatus }));
-      alert("Статус оплаты обновлен успешно");
-    } catch (error) {
-      alert(error.message);
+      setOrdersWithPayStatus(prev =>
+        prev.map(order =>
+          order._id === updatedOrder._id ? updatedOrder : order
+        )
+      );
+  
+      toast.success("Status muvaffaqiyatli yangilandi");
+      closeModal();
+    } catch (err) {
+      console.error("PATCH xato:", err);
+      toast.error(err.message);
     } finally {
       setIsUpdatingStatus(false);
     }
   };
+  
 
   useEffect(() => {
     if (!fetchedOnce.current) {
@@ -190,7 +216,7 @@ const Orders = () => {
       key: "edit",
       label: "Редактировать",
       render: (row) => (
-        <button className="btn btn-sm btn-outline btn-primary flex items-center gap-1">
+        <button onClick={() => openModal(row)} className="btn btn-sm btn-outline btn-primary flex items-center gap-1">
           <MdEdit />
           Редактировать
         </button>
@@ -282,7 +308,7 @@ const Orders = () => {
                     <p className="text-sm font-medium text-base-content/70">Сумма:</p>
                     <p>{modalData.totalPrice?.toLocaleString()} UZS</p>
                   </div>
-                  <div>
+                  <div className="gap-3">
                     <p className="text-sm font-medium text-base-content/70">Статус оплаты:</p>
                     <select
                       className="select select-primary"
@@ -293,13 +319,7 @@ const Orders = () => {
                       <option value="false">Не оплачено</option>
                       <option value="true">Оплачено</option>
                     </select>
-                    <button
-                      onClick={handleChangeStatus}
-                      className="btn btn-primary mt-2"
-                      disabled={isUpdatingStatus}
-                    >
-                      {isUpdatingStatus ? "Обновление..." : "Изменить статус"}
-                    </button>
+                   
                   </div>
                   {Array.isArray(modalData.products) && (
                     <div className="sm:col-span-2">
@@ -314,6 +334,13 @@ const Orders = () => {
                 </div>
               </div>
               <div className="text-end">
+              <button
+                      onClick={handleChangeStatus}
+                      className="btn btn-primary mt-2 btn-xl"
+                      disabled={isUpdatingStatus}
+                    >
+                      {isUpdatingStatus ? "Обновление..." : `Обновить` }
+                    </button>
                 <button className="btn btn-outline btn-error" onClick={closeModal}>
                   Закрыть
                 </button>
