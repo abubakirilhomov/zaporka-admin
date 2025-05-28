@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { MdOutlinePlaylistAdd, MdClose, MdRefresh } from "react-icons/md";
+import { MdOutlinePlaylistAdd, MdClose, MdRefresh, MdEdit } from "react-icons/md";
 import CustomTable from "../../Components/CustomTable/CustomTable";
 import Loading from "../../Components/Loading/Loading";
 import CustomPagination from "../../Components/CustomPagination/CustomPagination";
@@ -12,6 +12,7 @@ const Orders = () => {
 
   const headers = {
     Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
   };
 
   const [orders, setOrders] = useState([]);
@@ -25,6 +26,11 @@ const Orders = () => {
 
   const [modalData, setModalData] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // New state for payment status select in modal
+  const [paymentStatus, setPaymentStatus] = useState(false);
+  // New state for loading status update
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
   const totalPages = Math.ceil(ordersWithPayStatus.length / itemsPerPage);
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -87,12 +93,45 @@ const Orders = () => {
 
   const openModal = (order) => {
     setModalData(order);
+    setPaymentStatus(order.isPaid); // Set the current status in modal state
     setIsModalOpen(true);
   };
 
   const closeModal = () => {
     setModalData(null);
     setIsModalOpen(false);
+  };
+
+  const handleStatusChange = (e) => {
+    const val = e.target.value === "true"; // string to boolean
+    setPaymentStatus(val);
+  };
+
+  const handleChangeStatus = async () => {
+    if (!modalData) return;
+
+    setIsUpdatingStatus(true);
+    try {
+      const res = await fetch(`${import.meta.env.REACT_APP_API_URL}/api/orders/${modalData._id}`, {
+        method: "PATCH", 
+        headers,
+        body: JSON.stringify({ isPaid: paymentStatus }),
+      });
+
+      if (!res.ok) throw new Error("Ошибка при обновлении статуса оплаты");
+
+      setOrdersWithPayStatus((prev) =>
+        prev.map((order) =>
+          order._id === modalData._id ? { ...order, isPaid: paymentStatus } : order
+        )
+      );
+      setModalData((prev) => ({ ...prev, isPaid: paymentStatus }));
+      alert("Статус оплаты обновлен успешно");
+    } catch (error) {
+      alert(error.message);
+    } finally {
+      setIsUpdatingStatus(false);
+    }
   };
 
   useEffect(() => {
@@ -147,6 +186,16 @@ const Orders = () => {
         </span>
       ),
     },
+    {
+      key: "edit",
+      label: "Редактировать",
+      render: (row) => (
+        <button className="btn btn-sm btn-outline btn-primary flex items-center gap-1">
+          <MdEdit />
+          Редактировать
+        </button>
+      ),
+    },
   ];
 
   const actions = [
@@ -181,12 +230,7 @@ const Orders = () => {
         </button>
       </div>
 
-      <CustomTable
-        data={currentOrders}
-        columns={columns}
-        onRowClick={openModal}
-        actions={actions}
-      />
+      <CustomTable data={currentOrders} columns={columns} onRowClick={openModal} actions={actions} />
 
       <CustomPagination
         totalItems={ordersWithPayStatus.length}
@@ -240,7 +284,22 @@ const Orders = () => {
                   </div>
                   <div>
                     <p className="text-sm font-medium text-base-content/70">Статус оплаты:</p>
-                    <p>{modalData.isPaid ? "Оплачено" : "Не оплачено"}</p>
+                    <select
+                      className="select select-primary"
+                      value={paymentStatus.toString()}
+                      onChange={handleStatusChange}
+                      disabled={isUpdatingStatus}
+                    >
+                      <option value="false">Не оплачено</option>
+                      <option value="true">Оплачено</option>
+                    </select>
+                    <button
+                      onClick={handleChangeStatus}
+                      className="btn btn-primary mt-2"
+                      disabled={isUpdatingStatus}
+                    >
+                      {isUpdatingStatus ? "Обновление..." : "Изменить статус"}
+                    </button>
                   </div>
                   {Array.isArray(modalData.products) && (
                     <div className="sm:col-span-2">
@@ -254,8 +313,8 @@ const Orders = () => {
                   )}
                 </div>
               </div>
-              <div className="flex justify-end mt-6">
-                <button onClick={closeModal} className="btn btn-error">
+              <div className="text-end">
+                <button className="btn btn-outline btn-error" onClick={closeModal}>
                   Закрыть
                 </button>
               </div>
