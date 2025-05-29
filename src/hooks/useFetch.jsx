@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { logout } from "../store/slices/AuthSlice";
@@ -9,18 +9,17 @@ const useFetch = (baseUrl, options = {}, autoFetch = false) => {
   const [error, setError] = useState(null);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-
-  const stableOptions = useMemo(() => options, [options]);
+  const optionsRef = useRef(options);
 
   const fetchData = useCallback(
     async (url, overrideOptions = {}) => {
       if (!url) return;
       setLoading(true);
       setError(null);
-      console.log("worked")
+      console.log("worked");
       try {
         const response = await fetch(url, {
-          ...stableOptions,
+          ...optionsRef.current,
           ...overrideOptions,
         });
         if (!response.ok) {
@@ -47,7 +46,7 @@ const useFetch = (baseUrl, options = {}, autoFetch = false) => {
         setLoading(false);
       }
     },
-    [stableOptions, dispatch, navigate]
+    [dispatch, navigate]
   );
 
   useEffect(() => {
@@ -61,10 +60,10 @@ const useFetch = (baseUrl, options = {}, autoFetch = false) => {
   const postData = async (url, body, additionalHeaders = {}) => {
     const isFormData = body instanceof FormData;
     const headers = isFormData
-      ? { ...stableOptions.headers, ...additionalHeaders }
+      ? { ...optionsRef.current.headers, ...additionalHeaders }
       : {
           "Content-Type": "application/json",
-          ...stableOptions.headers,
+          ...optionsRef.current.headers,
           ...additionalHeaders,
         };
 
@@ -78,14 +77,14 @@ const useFetch = (baseUrl, options = {}, autoFetch = false) => {
   const putData = async (url, body) =>
     fetchData(url, {
       method: "PUT",
-      headers: { "Content-Type": "application/json", ...stableOptions.headers },
+      headers: { "Content-Type": "application/json", ...optionsRef.current.headers },
       body: JSON.stringify(body),
     });
 
   const deleteData = async (url) =>
     fetchData(url, {
       method: "DELETE",
-      headers: stableOptions.headers,
+      headers: optionsRef.current.headers,
     });
 
   return { data, loading, error, revalidate, postData, putData, deleteData };
