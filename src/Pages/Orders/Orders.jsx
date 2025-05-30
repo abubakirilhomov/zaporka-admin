@@ -23,15 +23,13 @@ const Orders = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingPayStatus, setIsLoadingPayStatus] = useState(false);
   const [error, setError] = useState(null);
-
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
-
   const [modalData, setModalData] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
   const [paymentStatus, setPaymentStatus] = useState(false);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  
   
   const totalPages = Math.ceil(ordersWithPayStatus.length / itemsPerPage);
   const indexOfLastItem = currentPage * itemsPerPage;
