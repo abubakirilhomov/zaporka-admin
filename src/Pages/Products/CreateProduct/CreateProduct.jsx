@@ -1,4 +1,3 @@
-// CreateProduct.js
 import React from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
@@ -19,15 +18,20 @@ const CreateProduct = () => {
     trigger,
   } = useForm();
   const token = localStorage.getItem("token");
-  const mainImage = watch("mainImage");
-  const swiperImages = watch("swiperImages") || [];
-  const { data, error, loading } = useFetch(
+  const images = watch("images") || [];
+
+  const { data: categories, error: catError, loading: catLoading } = useFetch(
     `${process.env.REACT_APP_API_URL}/api/v1/categories`,
     {},
     true
   );
+  const { data: otherProducts, error: prodError, loading: prodLoading } = useFetch(
+    `${process.env.REACT_APP_API_URL}/api/v1/products`,
+    {},
+    true
+  );
 
-  const handleSwiperImagesChange = (event) => {
+  const handleImagesChange = (event) => {
     const files = Array.from(event.target.files);
     const maxSize = 5 * 1024 * 1024; // 5MB limit per image
     const oversizedFiles = files.filter((file) => file.size > maxSize);
@@ -37,14 +41,14 @@ const CreateProduct = () => {
       return;
     }
 
-    if (files.length > 3 || swiperImages.length + files.length > 3) {
-      toast.error("Можно выбрать максимум 3 изображения для слайдера");
+    if (files.length > 5 || images.length + files.length > 5) {
+      toast.error("Можно выбрать максимум 5 изображений");
       return;
     }
 
-    const newFiles = [...swiperImages, ...files].slice(0, 3);
-    setValue("swiperImages", newFiles, { shouldValidate: true });
-    trigger("swiperImages");
+    const newImages = [...images, ...files].slice(0, 5);
+    setValue("images", newImages, { shouldValidate: true });
+    trigger("images");
   };
 
   const handleCreateProduct = async (data) => {
@@ -53,16 +57,12 @@ const CreateProduct = () => {
         throw new Error("Токен авторизации отсутствует. Пожалуйста, войдите в систему.");
       }
 
-      const requiredFields = ["title", "mainImage", "price", "currency", "category"];
+      const requiredFields = ["title", "images", "price", "category"];
       const missingFields = requiredFields.filter((field) => {
-        if (field === "mainImage") {
-          return (
-            !data.mainImage ||
-            (Array.isArray(data.mainImage) && data.mainImage.length === 0) ||
-            (data.mainImage instanceof FileList && data.mainImage.length === 0)
-          );
+        if (field === "images") {
+          return !data.images || (Array.isArray(data.images) && data.images.length === 0);
         }
-        return !data[field] || (Array.isArray(data[field]) && data[field].length === 0);
+        return !data[field];
       });
 
       if (missingFields.length > 0) {
@@ -70,88 +70,31 @@ const CreateProduct = () => {
       }
 
       const maxSize = 5 * 1024 * 1024; // 5MB
-      if (data.mainImage && data.mainImage instanceof File && data.mainImage.size > maxSize) {
-        throw new Error("Главная картинка должна быть меньше 5MB");
+      if (data.images && data.images.some((file) => file.size > maxSize)) {
+        throw new Error("Все изображения должны быть меньше 5MB");
       }
 
       const formData = new FormData();
-      const basicFields = {
-        title: data.title || "High-Pressure Steel Pipes",
-        description: data.description || "A durable steel pipe designed for high-pressure industrial applications.",
-        stock: data.stock || 2571,
-        currency: data.currency || "UZS",
-        availabilitiy: data.availabilitiy !== undefined ? data.availabilitiy : true,
-        manufacturer: data.manufacturer || "SteelCo",
-        model: data.model || "SP-500",
-        standart: data.standart || "DIN EN 10255",
-        serviceLife: data.serviceLife || "20 years",
-        construction: data.construction || "Tubular",
-        accession: data.accession || "Flanged",
-      };
-
-      Object.entries(basicFields).forEach(([key, value]) => {
-        formData.append(key, value);
-      });
-
-      const arrayFields = {
-        price: data.price || [150000, 175000],
-        swiperImages: data.swiperImages || [],
-        sizeInInch: data.sizeInInch || ["1/2", "3/4"],
-        sizeInmm: data.sizeInmm || [15, 20],
-        DN: data.DN || [15, 20],
-        type: data.type || ["Seamless", "Welded"],
-        surfaceMaterial: data.surfaceMaterial || ["Galvanized", "Black Oxide"],
-        workEnv: data.workEnv || ["Water", "Gas", "Oil"],
-        nominalPressure: data.nominalPressure || ["PN16", "PN25"],
-        workingPressure: data.workingPressure || ["10 bar", "15 bar"],
-        minPressure: data.minPressure || ["1 bar", "2 bar"],
-        maxPressure: data.maxPressure || ["20 bar", "25 bar"],
-        application: data.application || ["Plumbing", "Industrial Piping"],
-        advantages: data.advantages || ["Corrosion-resistant", "High durability", "Easy installation"],
-      };
-
-      Object.entries(arrayFields).forEach(([key, value]) => {
-        const arrayValue = Array.isArray(value) ? value : [value];
-        if (key === "swiperImages") {
-          arrayValue.forEach((file) => formData.append("swiperImages", file));
-        } else {
-          arrayValue.forEach((item) => formData.append(`${key}[]`, item));
-        }
-      });
-
-      const technicalSpecs = {
-        thickness: data.thickness || "5mm",
-        SDR: data.SDR || 11,
-        rotationAngle: data.rotationAngle || "90°",
-        material: data.material || "Carbon Steel",
-        steelGrade: data.steelGrade || "S235",
-        workEnvTemperature: data.workEnvTemperature || "-20°C to 120°C",
-      };
-
-      Object.entries(technicalSpecs).forEach(([key, value]) => {
-        formData.append(key, value);
-      });
-
-      if (data.mainImage) {
-        if (data.mainImage instanceof FileList) {
-          if (data.mainImage.length > 0) {
-            formData.append("mainImage", data.mainImage[0]);
-          } else {
-            throw new Error("Выберите главную картинку");
-          }
-        } else if (Array.isArray(data.mainImage) && data.mainImage.length > 0) {
-          formData.append("mainImage", data.mainImage[0]);
-        } else if (data.mainImage instanceof File) {
-          formData.append("mainImage", data.mainImage);
-        } else {
-          throw new Error("Неверный формат главной картинки");
-        }
+      formData.append("title", data.title || "Стальные трубы высокого давления");
+      formData.append("description", data.description || "Прочные стальные трубы для промышленного использования под высоким давлением.");
+      formData.append("stock", data.stock || 2571);
+      formData.append("price", data.price || 150000);
+      formData.append("size", data.size || "1/2");
+      formData.append("category", data.category || "67c5de0605ea1bafcf7d16ef");
+      formData.append("material", data.material || "Сталь");
+      formData.append("maxTemperature", data.maxTemperature || "120°C");
+      formData.append("type", data.type || "Шовная");
+      formData.append("pressure", data.pressure || 10);
+      formData.append("controlType", data.controlType || "Ручное");
+      formData.append("weight", data.weight || "5кг");
+      // Отправляем массив идентификаторов других продуктов
+      if (data.others && Array.isArray(data.others)) {
+        data.others.forEach((id) => formData.append("others[]", id));
       } else {
-        throw new Error("Главная картинка обязательна");
+        formData.append("others", JSON.stringify([]));
       }
 
-      // Category (already handled as a string _id from the select)
-      formData.append("category", data.category || "67c5de0605ea1bafcf7d16ef");
+      data.images.forEach((file) => formData.append("images", file));
 
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 30000);
@@ -168,14 +111,6 @@ const CreateProduct = () => {
       clearTimeout(timeoutId);
 
       if (!response.ok) {
-        if (response.status === 400) {
-          const error = await response.json();
-          throw new Error(error.message || "Ошибка валидации данных");
-        } else if (response.status === 403) {
-          throw new Error("Доступ запрещен: проверьте токен авторизации или права доступа.");
-        } else if (response.status === 520) {
-          throw new Error("Ошибка сервера: попробуйте позже или обратитесь к администратору.");
-        }
         const error = await response.json();
         throw new Error(error.message || "Ошибка при создании продукта");
       }
@@ -186,9 +121,7 @@ const CreateProduct = () => {
       if (error.name === "AbortError") {
         toast.error("Запрос превысил время ожидания. Проверьте сервер или уменьшите размер файлов.");
       } else if (error.message.includes("Failed to fetch")) {
-        toast.error(
-          "Не удалось подключиться к серверу. Проверьте CORS, доступность сервера или подключение к интернету."
-        );
+        toast.error("Не удалось подключиться к серверу. Проверьте подключение к интернету.");
       } else {
         toast.error(`Не удалось создать продукт: ${error.message}`);
       }
@@ -206,17 +139,21 @@ const CreateProduct = () => {
         <BasicInfoSection
           register={register}
           errors={errors}
-          categories={data || []} // Pass categories to BasicInfoSection
+          categories={categories || []}
         />
         <ImagesSection
           register={register}
           errors={errors}
           setValue={setValue}
           watch={watch}
-          onSwiperImagesChange={handleSwiperImagesChange}
+          onImagesChange={handleImagesChange}
         />
         <TechnicalSpecsSection register={register} errors={errors} />
-        <AdditionalInfoSection register={register} errors={errors} />
+        <AdditionalInfoSection
+          register={register}
+          errors={errors}
+          otherProducts={otherProducts || []}
+        />
 
         <button type="submit" className="btn btn-primary w-full">
           <MdOutlinePlaylistAdd className="mr-2" />

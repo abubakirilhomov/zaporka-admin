@@ -18,6 +18,7 @@ const useFetch = (baseUrl, options = {}, autoFetch = false) => {
       setError(null);
       console.log("worked");
       try {
+        console.log("worked")
         const response = await fetch(url, {
           ...optionsRef.current,
           ...overrideOptions,
@@ -25,7 +26,6 @@ const useFetch = (baseUrl, options = {}, autoFetch = false) => {
         if (!response.ok) {
           const errorText = await response.text();
           const errorMessage = `Error: ${response.status} ${response.statusText} - ${errorText} (URL: ${url})`;
-
           if (response.status === 401 || response.status === 403) {
             dispatch(logout());
             navigate("/login");
