@@ -63,7 +63,7 @@ const Navbar = () => {
           icon={<AiOutlineMenu />}
         />
         <div className="flex">
-          <NavButton title="Notification" dotColor="rgb(254, 201, 15)" icon={<RiNotification3Line />} />
+          {/* <NavButton title="Notification" dotColor="rgb(254, 201, 15)" icon={<RiNotification3Line />} /> */}
 
           <TooltipComponent content="Profile" position="BottomCenter">
             <div
