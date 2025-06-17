@@ -42,7 +42,7 @@ const Login = () => {
         localStorage.setItem("id", response.id);
         localStorage.setItem("username", response.username);
 
-        navigate("/dashboard");
+        navigate("/");
       } else {
         const errorMessage = response?.message || "Не удалось войти";
         toast.error(errorMessage);

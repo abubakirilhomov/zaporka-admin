@@ -10,6 +10,9 @@ const useFetch = (baseUrl, options = {}, autoFetch = false) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const optionsRef = useRef(options);
+  const defaultHeaders = {
+  Authorization: `Bearer ${localStorage.getItem("token")}`,
+};
 
   const fetchData = useCallback(
     async (url, overrideOptions = {}) => {
@@ -23,17 +26,17 @@ const useFetch = (baseUrl, options = {}, autoFetch = false) => {
           ...optionsRef.current,
           ...overrideOptions,
         });
-        if (!response.ok) {
-          const errorText = await response.text();
-          const errorMessage = `Error: ${response.status} ${response.statusText} - ${errorText} (URL: ${url})`;
-          if (response.status === 401 || response.status === 403) {
-            dispatch(logout());
-            navigate("/login");
-            throw new Error("Unauthorized or Forbidden: Redirecting to login");
-          }
+        // if (!response.ok) {
+        //   const errorText = await response.text();
+        //   const errorMessage = `Error: ${response.status} ${response.statusText} - ${errorText} (URL: ${url})`;
+        //   if (response.status === 401 || response.status === 403) {
+        //     dispatch(logout());
+        //     navigate("/login");
+        //     throw new Error("Unauthorized or Forbidden: Redirecting to login");
+        //   }
 
-          throw new Error(errorMessage);
-        }
+        //   throw new Error(errorMessage);
+        // }
 
         const result = await response.json();
         setData(result);
@@ -84,7 +87,10 @@ const useFetch = (baseUrl, options = {}, autoFetch = false) => {
   const deleteData = async (url) =>
     fetchData(url, {
       method: "DELETE",
-      headers: optionsRef.current.headers,
+      headers: {
+        ...optionsRef.current.headers,
+         ...defaultHeaders,
+      }
     });
 
   return { data, loading, error, revalidate, postData, putData, deleteData };
