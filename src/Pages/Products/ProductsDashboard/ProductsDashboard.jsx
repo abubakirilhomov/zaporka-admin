@@ -19,7 +19,7 @@ const ProductsDashboard = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const limit = 10;
-
+  const token = localStorage.getItem("token")
   const fetchUrl = `${apiUrl}?page=${currentPage}&limit=${limit}`;
   const { data, loading, error, revalidate, putData, deleteData } = useFetch(
     fetchUrl,
@@ -136,7 +136,7 @@ const ProductsDashboard = () => {
     if (!selectedProduct) return;
     try {
       const deleteUrl = `${apiUrl}/${selectedProduct._id}`;
-      await deleteData(deleteUrl);
+      await deleteData(deleteUrl, token);
       revalidate();
       setSelectedProduct(null);
       document.getElementById("product_modal").close();
