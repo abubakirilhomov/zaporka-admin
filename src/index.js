@@ -23,6 +23,7 @@ import Inventory from "./Pages/Inventory/Inventory";
 import AddInvoice from "./Pages/Inventory/AddInvoice";
 import CreateCategory from "./Pages/Categories/CreateCategory/CreateCategory";
 import CategoryDashboard from "./Pages/Categories/CategoryDashboard/CategoryDashboard";
+import NotFoundPage from "./Pages/NotFoundPage/NotFoundPage";
 
 // Define your routes
 const router = createBrowserRouter([
@@ -130,7 +131,7 @@ const router = createBrowserRouter([
   },
   {
     path: "*",
-    element: <h1>Page not found</h1>,
+    element: <NotFoundPage/>,
   },
   {
     path: "login",
