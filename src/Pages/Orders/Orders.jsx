@@ -276,12 +276,13 @@ const Orders = () => {
       <CustomTable data={currentOrders} columns={columns} onRowClick={openModal} actions={actions} />
 
       <CustomPagination
-        totalItems={ordersWithPayStatus.length}
-        itemsPerPage={itemsPerPage}
-        currentPage={currentPage}
-        onPageChange={setCurrentPage}
-        totalPages={(ordersWithPayStatus.length + itemsPerPage - 1) / itemsPerPage}
-      />
+  totalItems={ordersWithPayStatus.length}
+  itemsPerPage={itemsPerPage}
+  currentPage={currentPage}
+  onPageChange={setCurrentPage}
+  totalPages={Math.ceil(ordersWithPayStatus.length / itemsPerPage)}
+/>
+
 
       <AnimatePresence>
         {isModalOpen && modalData && (
