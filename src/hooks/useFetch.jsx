@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { logout } from "../store/slices/AuthSlice"; // Adjust path to your auth slice
+import { logout } from "../store/slices/AuthSlice";
 
 const useFetch = (baseUrl, options = {}, autoFetch = false) => {
   const [data, setData] = useState(null);
@@ -9,35 +9,34 @@ const useFetch = (baseUrl, options = {}, autoFetch = false) => {
   const [error, setError] = useState(null);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-
-  // Memoize options to prevent unnecessary re-renders
-  const stableOptions = useMemo(() => options, [options]);
+  const optionsRef = useRef(options);
+  const defaultHeaders = {
+  Authorization: `Bearer ${localStorage.getItem("token")}`,
+};
 
   const fetchData = useCallback(
     async (url, overrideOptions = {}) => {
       if (!url) return;
-
       setLoading(true);
       setError(null);
-
+      console.log("worked");
       try {
+        console.log("worked")
         const response = await fetch(url, {
-          ...stableOptions,
+          ...optionsRef.current,
           ...overrideOptions,
         });
+        // if (!response.ok) {
+        //   const errorText = await response.text();
+        //   const errorMessage = `Error: ${response.status} ${response.statusText} - ${errorText} (URL: ${url})`;
+        //   if (response.status === 401 || response.status === 403) {
+        //     dispatch(logout());
+        //     navigate("/login");
+        //     throw new Error("Unauthorized or Forbidden: Redirecting to login");
+        //   }
 
-        if (!response.ok) {
-          const errorText = await response.text();
-          const errorMessage = `Error: ${response.status} ${response.statusText} - ${errorText} (URL: ${url})`;
-
-          if (response.status === 401 || response.status === 403) {
-            dispatch(logout()); // Dispatch logout action
-            navigate("/login"); // Navigate to login page
-            throw new Error("Unauthorized or Forbidden: Redirecting to login");
-          }
-
-          throw new Error(errorMessage);
-        }
+        //   throw new Error(errorMessage);
+        // }
 
         const result = await response.json();
         setData(result);
@@ -50,7 +49,7 @@ const useFetch = (baseUrl, options = {}, autoFetch = false) => {
         setLoading(false);
       }
     },
-    [stableOptions, dispatch, navigate]
+    [dispatch, navigate]
   );
 
   useEffect(() => {
@@ -64,10 +63,10 @@ const useFetch = (baseUrl, options = {}, autoFetch = false) => {
   const postData = async (url, body, additionalHeaders = {}) => {
     const isFormData = body instanceof FormData;
     const headers = isFormData
-      ? { ...stableOptions.headers, ...additionalHeaders }
+      ? { ...optionsRef.current.headers, ...additionalHeaders }
       : {
           "Content-Type": "application/json",
-          ...stableOptions.headers,
+          ...optionsRef.current.headers,
           ...additionalHeaders,
         };
 
@@ -81,14 +80,17 @@ const useFetch = (baseUrl, options = {}, autoFetch = false) => {
   const putData = async (url, body) =>
     fetchData(url, {
       method: "PUT",
-      headers: { "Content-Type": "application/json", ...stableOptions.headers },
+      headers: { "Content-Type": "application/json", ...optionsRef.current.headers },
       body: JSON.stringify(body),
     });
 
   const deleteData = async (url) =>
     fetchData(url, {
       method: "DELETE",
-      headers: stableOptions.headers,
+      headers: {
+        ...optionsRef.current.headers,
+         ...defaultHeaders,
+      }
     });
 
   return { data, loading, error, revalidate, postData, putData, deleteData };
