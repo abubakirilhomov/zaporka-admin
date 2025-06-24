@@ -1,14 +1,11 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useSelector } from "react-redux";
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
 import ChartComponent from "../../Components/ChartComponent/ChartComponent";
-
-//abubakir tentak
 
 const Loader = () => (
   <div className="flex items-center justify-center h-80">
-    <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-primary border-opacity-70"></div>
+    <span className="loading loading-spinner loading-lg text-primary"></span>
   </div>
 );
 
@@ -83,6 +80,11 @@ const Dashboard = () => {
       .finally(() => setLoadingCategories(false));
   };
 
+  const handleRefresh = () => {
+    fetchUsersData();
+    fetchCategoriesData();
+  };
+
   useEffect(() => {
     if (!token) {
       setErrorUsers("Отсутствует токен авторизации.");
@@ -108,94 +110,75 @@ const Dashboard = () => {
     return labels;
   };
 
-  const usersChartData = useMemo(
-    () => ({
-      labels: getWeekLabels(),
-      datasets: [
-        {
-          label: "Новые пользователи",
-          data: usersData,
-          fill: true,
-          backgroundColor: isDarkMode ? "rgba(96, 165, 250, 0.3)" : "rgba(59, 130, 246, 0.2)",
-          borderColor: isDarkMode ? "rgba(96, 165, 250, 0.8)" : "rgba(59, 130, 246, 1)",
-          tension: 0.4,
-          pointRadius: 5,
-          pointHoverRadius: 8,
-        },
-      ],
-    }),
-    [usersData, isDarkMode]
-  );
+  const usersChartData = useMemo(() => ({
+    labels: getWeekLabels(),
+    datasets: [
+      {
+        label: "Новые пользователи",
+        data: usersData,
+        backgroundColor: "rgba(34, 211, 238, 0.3)",
+        borderColor: "#22d3ee",
+        tension: 0.4,
+        pointRadius: 6,
+        pointHoverRadius: 9,
+        fill: true,
+      },
+    ],
+  }), [usersData]);
 
-  const categoriesChartData = useMemo(
-    () => ({
-      labels: categoriesData.map((category) => category.name),
-      datasets: [
-        {
-          label: "Продажа по категориям",
-          data: categoriesData.map((category) => category.sales || 0),
-          backgroundColor: categoriesData.map((_, index) =>
-            isDarkMode
-              ? `rgba(${100 + index * 40}, ${150 + index * 20}, 255, 0.7)`
-              : `rgba(${80 + index * 40}, ${120 + index * 20}, 200, 0.6)`
-          ),
-          borderColor: categoriesData.map((_, index) =>
-            isDarkMode
-              ? `rgba(${100 + index * 40}, ${150 + index * 20}, 255, 1)`
-              : `rgba(${80 + index * 40}, ${120 + index * 20}, 200, 1)`
-          ),
-          borderWidth: 1,
-        },
-      ],
-    }),
-    [categoriesData, isDarkMode]
-  );
+  const categoriesChartData = useMemo(() => ({
+    labels: categoriesData.map(c => c.name),
+    datasets: [
+      {
+        label: "Продажа по категориям",
+        data: categoriesData.map(c => c.productsQuantity || 0),
+        backgroundColor: "rgba(96, 165, 250, 0.4)",
+        borderColor: "#3b82f6",
+        tension: 0.4,
+        pointRadius: 6,
+        pointHoverRadius: 9,
+        fill: true,
+      },
+    ],
+  }), [categoriesData]);
 
-  const chartOptions = useMemo(
-    () => ({
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          position: "top",
-          labels: {
-            color: isDarkMode ? "#d1d5db" : "#374151",
-            font: { size: 14 },
-          },
-        },
-        title: {
-          display: true,
-          color: isDarkMode ? "#d1d5db" : "#374151",
-          font: { size: 16, weight: "bold" },
+  const chartOptions = useMemo(() => ({
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        labels: {
+          color: isDarkMode ? "#fff" : "#000",
+          font: { size: 14 },
         },
       },
-      scales: {
-        x: {
-          ticks: {
-            color: isDarkMode ? "#d1d5db" : "#374151",
-            font: { size: 12 },
-          },
-          grid: { display: false },
+      title: {
+        display: false,
+      },
+    },
+    scales: {
+      x: {
+        ticks: {
+          color: isDarkMode ? "#fff" : "#000",
         },
-        y: {
-          ticks: {
-            color: isDarkMode ? "#d1d5db" : "#374151",
-            font: { size: 12 },
-          },
-          beginAtZero: true,
-          grid: {
-            color: isDarkMode ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)",
-          },
+        grid: { display: false },
+      },
+      y: {
+        beginAtZero: true,
+        ticks: {
+          color: isDarkMode ? "#fff" : "#000",
+        },
+        grid: {
+          color: isDarkMode ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
         },
       },
-    }),
-    [isDarkMode]
-  );
+    },
+  }), [isDarkMode]);
 
   return (
-    <div className="min-h-screen bg-background-light dark:bg-background-dark p-6 transition-colors duration-300">
+    <div className="min-h-screen bg-base-100 text-base-content p-6 transition-colors duration-300">
       <motion.div
-        className="max-w-6xl mx-auto space-y-8"
+        className="max-w-6xl mx-auto space-y-10"
         initial="hidden"
         animate="visible"
         variants={{
@@ -207,92 +190,64 @@ const Dashboard = () => {
           },
         }}
       >
-        <motion.div
-          variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }}
-          className="text-center"
-        >
-          <h1 className="text-4xl font-bold text-text-primary-light dark:text-text-primary-dark">
+        <motion.div variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }}>
+          <h1 className="text-3xl font-bold text-center">
             Добро пожаловать, <span className="text-primary">{user}</span>
           </h1>
-          <p className="text-text-secondary-light dark:text-text-secondary-dark mt-2">
+          <p className="text-center mt-2 text-sm opacity-80">
             Всего пользователей: <strong>{totalUsers}</strong>
           </p>
-          <button
-            className="mt-4 px-4 py-2 bg-primary dark:bg-primary-dark text-white rounded-lg shadow-md hover:bg-primary/80 dark:hover:bg-primary-dark/80 transition-colors"
-            onClick={fetchUsersData}
-          >
-            Обновить данные
-          </button>
-          <div className="mt-4">
-            <Link
-              to="/users"
-              className="text-primary dark:text-primary-dark hover:underline"
+          <div className="flex justify-center mt-4">
+            <button
+              className="btn btn-primary"
+              onClick={handleRefresh}
             >
-              Перейти к списку пользователей
-            </Link>
+              Обновить
+            </button>
           </div>
         </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <motion.div
-            className="bg-card-light dark:bg-card-dark rounded-xl shadow-md p-6 h-96 transition-colors duration-300"
+            className="bg-base-200 rounded-xl shadow-xl p-6 h-96"
             variants={{ hidden: {}, visible: {} }}
           >
-            <h2 className="text-xl font-semibold text-text-primary-light dark:text-text-primary-dark mb-4">
-              Пользователи за неделю
-            </h2>
+            <h2 className="text-xl font-semibold mb-4">Пользователи за неделю</h2>
             {loadingUsers ? (
               <Loader />
             ) : errorUsers ? (
               <p className="text-error">{errorUsers}</p>
             ) : (
               <div className="relative h-80">
-                <ChartComponent
-                  type="line"
-                  data={usersChartData}
-                  options={{
-                    ...chartOptions,
-                    plugins: {
-                      ...chartOptions.plugins,
-                      title: {
-                        text: "Новые пользователи за неделю",
-                        display: true,
-                      },
-                    },
-                  }}
-                />
+                <ChartComponent type="line" data={usersChartData} options={{
+                  ...chartOptions,
+                  plugins: {
+                    ...chartOptions.plugins,
+                    title: { text: "Пользователи", display: true },
+                  }
+                }} />
               </div>
             )}
           </motion.div>
 
           <motion.div
-            className="bg-card-light dark:bg-card-dark rounded-xl shadow-md p-6 h-96 transition-colors duration-300"
+            className="bg-base-200 rounded-xl shadow-xl p-6 h-96"
             variants={{ hidden: {}, visible: {} }}
           >
-            <h2 className="text-xl font-semibold text-text-primary-light dark:text-text-primary-dark mb-4">
-              Продажа по категориям
-            </h2>
+            <h2 className="text-xl font-semibold mb-4">Продажа по категориям</h2>
             {loadingCategories ? (
               <Loader />
             ) : errorCategories ? (
               <p className="text-error">{errorCategories}</p>
             ) : (
               <div className="relative h-80">
-                <ChartComponent
-                  type="bar"
-                  data={categoriesChartData}
-                  options={{
-                    ...chartOptions,
-                    plugins: {
-                      ...chartOptions.plugins,
-                      title: {
-                        text: "Продажа по категориям",
-                        display: true,
-                      },
-                    },
-
-                  }}
-                />
+                <ChartComponent type="line" data={categoriesChartData} options={{
+                  ...chartOptions,
+                  plugins: {
+                    ...chartOptions.plugins,
+                    title: { text: "Категории", display: true },
+                  }
+                }} />
               </div>
             )}
           </motion.div>
