@@ -6,7 +6,6 @@ import CustomPagination from "../../Components/CustomPagination/CustomPagination
 import { AnimatePresence, motion } from "framer-motion";
 import { toast } from 'react-toastify';
 
-
 const Orders = () => {
   const token = localStorage.getItem("token");
   const apiUrl = `${process.env.REACT_APP_API_URL}/api/v1/orders`;
@@ -30,7 +29,7 @@ const Orders = () => {
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const itemsPerPage = 10;
 
-
+  // Calculate total pages correctly
   const totalPages = Math.ceil(ordersWithPayStatus.length / itemsPerPage);
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -61,8 +60,6 @@ const Orders = () => {
               headers,
             });
             const orderData = await res.json();
-            console.log("ORDER DATA:", orderData);
-
             return {
               ...order,
               firstName: order.firstName || "",
@@ -88,7 +85,6 @@ const Orders = () => {
     }
   };
 
-
   const handleDelate = async () => {
     if (!modalData || !modalData._id) return;
 
@@ -102,9 +98,6 @@ const Orders = () => {
 
       if (!request.ok) throw new Error("Ошибка при удалении");
 
-      const response = await request.json();
-      console.log("Deleted:", response);
-
       toast.success("Заказ успешно удалён");
 
       setOrders(prev => prev.filter(order => order._id !== modalData._id));
@@ -117,11 +110,11 @@ const Orders = () => {
     }
   };
 
-
   const handleStatusChange = (e) => {
     const val = e.target.value === "true";
     setPaymentStatus(val);
   };
+
   const handleChangeStatus = async () => {
     if (!modalData || !modalData._id) {
       console.error("modalData yo'q");
@@ -169,21 +162,16 @@ const Orders = () => {
     }
   };
 
-
   const openModal = (order) => {
     setModalData(order);
-    setPaymentStatus(order?._id);
+    setPaymentStatus(order?.isPaid || false); // Fixed: Use isPaid instead of _id
     setIsModalOpen(true);
-    console.log("MODAL DATA:", modalData);
   };
-
-
 
   const closeModal = () => {
     setModalData(null);
     setIsModalOpen(false);
   };
-
 
   useEffect(() => {
     if (!fetchedOnce.current) {
@@ -229,8 +217,7 @@ const Orders = () => {
       label: "Оплата",
       render: (val) => (
         <span
-          className={`px-2 py-1 rounded-full text-xs font-bold ${val ? "bg-success text-base-300" : "bg-error text-base-300"
-            }`}
+          className={`px-2 py-1 rounded-full text-xs font-bold ${val ? "bg-success text-base-300" : "bg-error text-base-300"}`}
         >
           {val ? "Оплачено" : "Не оплачено"}
         </span>
@@ -270,19 +257,17 @@ const Orders = () => {
     <div className="p-4">
       <div className="flex items-center justify-between mb-4">
         <p className="text-3xl font-bold text-primary">Заказы</p>
-
       </div>
 
       <CustomTable data={currentOrders} columns={columns} onRowClick={openModal} actions={actions} />
 
       <CustomPagination
-  totalItems={ordersWithPayStatus.length}
-  itemsPerPage={itemsPerPage}
-  currentPage={currentPage}
-  onPageChange={setCurrentPage}
-  totalPages={Math.ceil(ordersWithPayStatus.length / itemsPerPage)}
-/>
-
+        totalItems={ordersWithPayStatus.length}
+        itemsPerPage={itemsPerPage}
+        currentPage={currentPage}
+        onPageChange={setCurrentPage}
+        totalPages={totalPages} // Use the correctly calculated totalPages
+      />
 
       <AnimatePresence>
         {isModalOpen && modalData && (
@@ -338,16 +323,16 @@ const Orders = () => {
                   )}
                 </div>
               </div>
-              <div className="  flex gap-4 itmes-center justify-end">
+              <div className="flex gap-4 items-center justify-end">
                 <button
                   onClick={handleChangeStatus}
-                  className="btn btn-success  btn-xl"
+                  className="btn btn-success btn-xl"
                   disabled={isUpdatingStatus}
                 >
-                  {isUpdatingStatus ? "Обновление..." : `Обновить`}
+                  {isUpdatingStatus ? "Обновление..." : `Обновить оплату`}
                 </button>
                 <button onClick={handleDelate} className="btn btn-error">
-                  Delate
+                  Удалить
                 </button>
                 <button className="btn btn-outline btn-error" onClick={closeModal}>
                   Закрыть

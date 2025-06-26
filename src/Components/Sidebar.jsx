@@ -1,17 +1,16 @@
 import React from "react";
 import { Link, NavLink } from "react-router-dom";
-import { SiShopware } from "react-icons/si";
 import { MdAddBusiness, MdOutlineCancel } from "react-icons/md";
 import { TooltipComponent } from "@syncfusion/ej2-react-popups";
 import { IoIosAddCircleOutline } from "react-icons/io";
 import { useStateContext } from "../Contexts/ContextProvider";
 import { FiShoppingBag } from "react-icons/fi";
 import { IoMdContacts } from "react-icons/io";
-import { AiOutlineCalendar, AiOutlineShoppingCart, AiOutlineStock } from "react-icons/ai";
-import { RiContactsLine } from "react-icons/ri";
+import { AiOutlineCalendar } from "react-icons/ai";
 import { BsKanban } from "react-icons/bs";
 import { MdOutlineInventory } from "react-icons/md";
 import { BiCategory } from "react-icons/bi";
+import { NativeAnimation } from "framer-motion";
 
 const Sidebar = () => {
   const { activeMenu, setActiveMenu, screenSize, currentMode } = useStateContext();
@@ -103,6 +102,18 @@ const Sidebar = () => {
         },
       ],
     },
+    {
+      title: "Компания",
+      links: [
+        {
+          name: "ٌКомпания",
+          route: "company-info", // English route path (you may need to add this route in index.jsx)
+          icon: <BsKanban />,
+        }
+      ]
+    }
+   
+    
   ];
 
   const handleCloseSidebar = () => {

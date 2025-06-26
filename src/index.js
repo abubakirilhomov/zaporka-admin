@@ -24,6 +24,7 @@ import AddInvoice from "./Pages/Inventory/AddInvoice";
 import CreateCategory from "./Pages/Categories/CreateCategory/CreateCategory";
 import CategoryDashboard from "./Pages/Categories/CategoryDashboard/CategoryDashboard";
 import NotFoundPage from "./Pages/NotFoundPage/NotFoundPage";
+import CompanyInfo from "./Pages/companyInfo/CompanyInfo";
 
 // Define your routes
 const router = createBrowserRouter([
@@ -124,6 +125,14 @@ const router = createBrowserRouter([
         element: (
           <ProtectedRoute>
             <AddInvoice/>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "company-info",
+        element: (
+          <ProtectedRoute>
+            <CompanyInfo/>
           </ProtectedRoute>
         ),
       }
