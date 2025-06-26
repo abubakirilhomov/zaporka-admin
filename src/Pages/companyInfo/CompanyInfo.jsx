@@ -140,7 +140,7 @@ const CompanyInfo = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="bg-base-100 rounded-2xl shadow-lg overflow-hidden border border-base-300">
               <div className="bg-gradient-to-r from-primary to-primary-focus p-6">
-                <h2 className="text-xl font-bold text-primary-content">Contact Details</h2>
+                <p className="text-xl font-bold text-primary-content">Contact Details</p>
               </div>
               
               <div className="p-6">
@@ -150,7 +150,7 @@ const CompanyInfo = () => {
                       <MdMarkEmailUnread className='text-xl' />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-base-content/70">Email</h3>
+                      <p className="font-semibold text-base-content/70">Email</p>
                       <p className="text-lg text-base-content">{companyInfo.email?.[0] || 'Not provided'}</p>
                     </div>
                   </div>
@@ -160,7 +160,7 @@ const CompanyInfo = () => {
                       <FaPhone className='text-xl' />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-base-content/70">Phone</h3>
+                      <p className="font-semibold text-base-content/70">Phone</p>
                       <p className="text-lg text-base-content">{companyInfo.phoneNumbers?.[0] || 'Not provided'}</p>
                     </div>
                   </div>
@@ -170,7 +170,7 @@ const CompanyInfo = () => {
                       <MdPlace className='text-xl' />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-base-content/70">Address</h3>
+                      <p className="font-semibold text-base-content/70">Address</p>
                       <p className="text-lg text-base-content">{companyInfo.companyAddress?.address || 'Not provided'}</p>
                     </div>
                   </div>
@@ -180,7 +180,7 @@ const CompanyInfo = () => {
                       <FaTelegram className='text-xl' />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-base-content/70">Telegram</h3>
+                      <p className="font-semibold text-base-content/70">Telegram</p>
                       <p className="text-lg text-base-content">{companyInfo.telegram || 'Not provided'}</p>
                     </div>
                   </div>
@@ -190,7 +190,7 @@ const CompanyInfo = () => {
                       <MdAccessTime className='text-xl' />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-base-content/70">Work Time</h3>
+                      <p className="font-semibold text-base-content/70">Work Time</p>
                       <p className="text-lg text-base-content">{companyInfo.workTime || 'Not provided'}</p>
                     </div>
                   </div>
