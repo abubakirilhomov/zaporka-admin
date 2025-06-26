@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { FaPen, FaPhone, FaTelegram, FaSave, FaTimes, FaInfoCircle } from "react-icons/fa";
 import { MdMarkEmailUnread, MdPlace, MdAccessTime } from "react-icons/md";
@@ -36,8 +37,8 @@ const CompanyInfo = () => {
         description: response.companyInfo || ''
       });
     } catch (error) {
-      console.log("Fetching error", error);
-      showNotification('Error fetching company information', 'error');
+      console.log("Ошибка получения данных", error);
+      showNotification('Ошибка при получении информации о компании', 'error');
     } finally {
       setIsLoading(false);
     }
@@ -74,14 +75,14 @@ const CompanyInfo = () => {
         const updatedData = await response.json();
         setCompanyInfo(updatedData);
         setEditMode(false);
-        showNotification('Company information updated successfully!', 'success');
+        showNotification('Информация о компании успешно обновлена!', 'success');
       } else {
-        console.error('Failed to update company info');
-        showNotification('Failed to update company information', 'error');
+        console.error('Не удалось обновить информацию о компании');
+        showNotification('Не удалось обновить информацию о компании', 'error');
       }
     } catch (error) {
-      console.error('Error updating company info:', error);
-      showNotification('Error updating company information', 'error');
+      console.error('Ошибка обновления информации о компании:', error);
+      showNotification('Ошибка обновления информации о компании', 'error');
     } finally {
       setIsSaving(false);
     }
@@ -103,15 +104,15 @@ const CompanyInfo = () => {
       <div className="max-w-6xl mx-auto">
         <div className='flex justify-between items-center mb-8'>
           <div>
-            <h1 className='text-3xl md:text-4xl font-bold text-base-content'>Company Information</h1>
-            <p className='text-base-content/70 mt-2'>Manage your company's contact details and information</p>
+            <h1 className='text-3xl md:text-4xl font-bold text-base-content'>Информация о компании</h1>
+            <p className='text-base-content/70 mt-2'>Управляйте контактными данными и информацией о вашей компании</p>
           </div>
           {!editMode && (
             <button
               className='btn btn-primary flex items-center gap-2 shadow-lg hover:shadow-xl transition-all'
               onClick={() => setEditMode(true)}
             >
-              <FaPen className="text-sm" /> Edit Info
+              <FaPen className="text-sm" /> Редактировать информацию
             </button>
           )}
         </div>
@@ -132,7 +133,7 @@ const CompanyInfo = () => {
         {isLoading && (
           <div className="bg-base-100 rounded-2xl shadow-lg p-8 flex flex-col items-center justify-center">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-            <p className="mt-4 text-base-content/70">Loading company information...</p>
+            <p className="mt-4 text-base-content/70">Загрузка информации о компании...</p>
           </div>
         )}
 
@@ -140,7 +141,7 @@ const CompanyInfo = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="bg-base-100 rounded-2xl shadow-lg overflow-hidden border border-base-300">
               <div className="bg-gradient-to-r from-primary to-primary-focus p-6">
-                <p className="text-xl font-bold text-primary-content">Contact Details</p>
+                <p className="text-xl font-bold text-primary-content">Контактные данные</p>
               </div>
               
               <div className="p-6">
@@ -150,8 +151,8 @@ const CompanyInfo = () => {
                       <MdMarkEmailUnread className='text-xl' />
                     </div>
                     <div>
-                      <p className="font-semibold text-base-content/70">Email</p>
-                      <p className="text-lg text-base-content">{companyInfo.email?.[0] || 'Not provided'}</p>
+                      <p className="font-semibold text-base-content/70">Электронная почта</p>
+                      <p className="text-lg text-base-content">{companyInfo.email?.[0] || 'Не указано'}</p>
                     </div>
                   </div>
                   
@@ -160,8 +161,8 @@ const CompanyInfo = () => {
                       <FaPhone className='text-xl' />
                     </div>
                     <div>
-                      <p className="font-semibold text-base-content/70">Phone</p>
-                      <p className="text-lg text-base-content">{companyInfo.phoneNumbers?.[0] || 'Not provided'}</p>
+                      <p className="font-semibold text-base-content/70">Телефон</p>
+                      <p className="text-lg text-base-content">{companyInfo.phoneNumbers?.[0] || 'Не указано'}</p>
                     </div>
                   </div>
                   
@@ -170,8 +171,8 @@ const CompanyInfo = () => {
                       <MdPlace className='text-xl' />
                     </div>
                     <div>
-                      <p className="font-semibold text-base-content/70">Address</p>
-                      <p className="text-lg text-base-content">{companyInfo.companyAddress?.address || 'Not provided'}</p>
+                      <p className="font-semibold text-base-content/70">Адрес</p>
+                      <p className="text-lg text-base-content">{companyInfo.companyAddress?.address || 'Не указано'}</p>
                     </div>
                   </div>
                   
@@ -181,7 +182,7 @@ const CompanyInfo = () => {
                     </div>
                     <div>
                       <p className="font-semibold text-base-content/70">Telegram</p>
-                      <p className="text-lg text-base-content">{companyInfo.telegram || 'Not provided'}</p>
+                      <p className="text-lg text-base-content">{companyInfo.telegram || 'Не указано'}</p>
                     </div>
                   </div>
                   
@@ -190,8 +191,8 @@ const CompanyInfo = () => {
                       <MdAccessTime className='text-xl' />
                     </div>
                     <div>
-                      <p className="font-semibold text-base-content/70">Work Time</p>
-                      <p className="text-lg text-base-content">{companyInfo.workTime || 'Not provided'}</p>
+                      <p className="font-semibold text-base-content/70">Рабочее время</p>
+                      <p className="text-lg text-base-content">{companyInfo.workTime || 'Не указано'}</p>
                     </div>
                   </div>
                 </div>
@@ -199,8 +200,8 @@ const CompanyInfo = () => {
             </div>
             
             <div className="bg-base-100 rounded-2xl shadow-lg overflow-hidden border border-base-300">
-              <div className="bg-gradient-to-r from-primary to-primary-focuss p-6">
-                <h2 className="text-xl font-bold text-secondary-content">Company Description</h2>
+              <div className="bg-gradient-to-r from-primary to-primary-focus p-6">
+                <h2 className="text-xl font-bold text-secondary-content">Описание компании</h2>
               </div>
               
               <div className="p-6">
@@ -210,7 +211,7 @@ const CompanyInfo = () => {
                   </div>
                   <div>
                     <p className="text-base-content leading-relaxed">
-                      {companyInfo.companyInfo || 'No company description available.'}
+                      {companyInfo.companyInfo || 'Описание компании отсутствует.'}
                     </p>
                   </div>
                 </div>
@@ -223,20 +224,20 @@ const CompanyInfo = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
             <div className="bg-gradient-to-r from-primary to-primary-focus rounded-xl shadow-lg p-6 text-primary-content">
               <div className="text-3xl font-bold mb-2">5+</div>
-              <div className="text-lg">Years in Business</div>
-              <div className="text-sm opacity-80 mt-1">Trusted by clients</div>
+              <div className="text-lg">Лет в бизнесе</div>
+              <div className="text-sm opacity-80 mt-1">Доверяют клиенты</div>
             </div>
             
             <div className="bg-gradient-to-r from-secondary to-secondary-focus rounded-xl shadow-lg p-6 text-secondary-content">
               <div className="text-3xl font-bold mb-2">24/7</div>
-              <div className="text-lg">Customer Support</div>
-              <div className="text-sm opacity-80 mt-1">Always here to help</div>
+              <div className="text-lg">Поддержка клиентов</div>
+              <div className="text-sm opacity-80 mt-1">Всегда готовы помочь</div>
             </div>
             
             <div className="bg-gradient-to-r from-accent to-accent-focus rounded-xl shadow-lg p-6 text-accent-content">
               <div className="text-3xl font-bold mb-2">100+</div>
-              <div className="text-lg">Team Members</div>
-              <div className="text-sm opacity-80 mt-1">Dedicated professionals</div>
+              <div className="text-lg">Сотрудников</div>
+              <div className="text-sm opacity-80 mt-1">Преданные профессионалы</div>
             </div>
           </div>
         )}
@@ -244,7 +245,7 @@ const CompanyInfo = () => {
         {editMode && (
           <div className="bg-base-100 rounded-2xl shadow-xl overflow-hidden border border-base-300">
             <div className="bg-gradient-to-r from-primary to-primary-focus p-6">
-              <h2 className="text-xl font-bold text-primary-content">Edit Company Information</h2>
+              <h2 className="text-xl font-bold text-primary-content">Редактировать информацию о компании</h2>
             </div>
             
             <div className="p-6">
@@ -253,14 +254,14 @@ const CompanyInfo = () => {
                   <div className="form-control">
                     <label className="label">
                       <span className="label-text flex items-center gap-2 text-base-content">
-                        <MdMarkEmailUnread className='text-primary' /> Email
+                        <MdMarkEmailUnread className='text-primary' /> Электронная почта
                       </span>
                     </label>
                     <input 
                       type="text" 
                       name="email"
                       className="input input-bordered w-full focus:ring-2 focus:ring-primary" 
-                      placeholder="Company email..." 
+                      placeholder="Электронная почта компании..." 
                       value={formData.email}
                       onChange={handleInputChange}
                     />
@@ -269,14 +270,14 @@ const CompanyInfo = () => {
                   <div className="form-control">
                     <label className="label">
                       <span className="label-text flex items-center gap-2 text-base-content">
-                        <FaPhone className='text-secondary' /> Phone
+                        <FaPhone className='text-secondary' /> Телефон
                       </span>
                     </label>
                     <input 
                       type="text" 
                       name="phone"
                       className="input input-bordered w-full focus:ring-2 focus:ring-secondary" 
-                      placeholder="Phone number..." 
+                      placeholder="Номер телефона..." 
                       value={formData.phone}
                       onChange={handleInputChange}
                     />
@@ -285,13 +286,13 @@ const CompanyInfo = () => {
                   <div className="form-control">
                     <label className="label">
                       <span className="label-text flex items-center gap-2 text-base-content">
-                        <MdPlace className='text-accent' /> Address
+                        <MdPlace className='text-accent' /> Адрес
                       </span>
                     </label>
                     <textarea 
                       name="address"
                       className="textarea textarea-bordered w-full focus:ring-2 focus:ring-accent" 
-                      placeholder="Company address..." 
+                      placeholder="Адрес компании..." 
                       value={formData.address}
                       onChange={handleInputChange}
                       rows="3"
@@ -310,7 +311,7 @@ const CompanyInfo = () => {
                       type="text" 
                       name="telegram"
                       className="input input-bordered w-full focus:ring-2 focus:ring-info" 
-                      placeholder="Telegram link..." 
+                      placeholder="Ссылка на Telegram..." 
                       value={formData.telegram}
                       onChange={handleInputChange}
                     />
@@ -319,14 +320,14 @@ const CompanyInfo = () => {
                   <div className="form-control">
                     <label className="label">
                       <span className="label-text flex items-center gap-2 text-base-content">
-                        <MdAccessTime className='text-warning' /> Work Time
+                        <MdAccessTime className='text-warning' /> Рабочее время
                       </span>
                     </label>
                     <input 
                       type="text" 
                       name="workTime"
                       className="input input-bordered w-full focus:ring-2 focus:ring-warning" 
-                      placeholder="e.g., 9:00 AM - 6:00 PM" 
+                      placeholder="например, 9:00 - 18:00" 
                       value={formData.workTime}
                       onChange={handleInputChange}
                     />
@@ -335,13 +336,13 @@ const CompanyInfo = () => {
                   <div className="form-control">
                     <label className="label">
                       <span className="label-text flex items-center gap-2 text-base-content">
-                        <TbFileDescription className='text-secondary' /> Description
+                        <TbFileDescription className='text-secondary' /> Описание
                       </span>
                     </label>
                     <textarea 
                       name="description"
                       className="textarea textarea-bordered w-full focus:ring-2 focus:ring-secondary h-32" 
-                      placeholder="Company description..." 
+                      placeholder="Описание компании..." 
                       value={formData.description}
                       onChange={handleInputChange}
                     />
@@ -355,7 +356,7 @@ const CompanyInfo = () => {
                   onClick={() => setEditMode(false)}
                   disabled={isSaving}
                 >
-                  <FaTimes /> Cancel
+                  <FaTimes /> Отмена
                 </button>
                 <button 
                   className="btn btn-primary flex items-center gap-2 shadow-md hover:shadow-lg"
@@ -364,11 +365,11 @@ const CompanyInfo = () => {
                 >
                   {isSaving ? (
                     <>
-                      <span className="loading loading-spinner"></span> Saving...
+                      <span className="loading loading-spinner"></span> Сохранение...
                     </>
                   ) : (
                     <>
-                      <FaSave /> Save Changes
+                      <FaSave /> Сохранить изменения
                     </>
                   )}
                 </button>
