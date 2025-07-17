@@ -220,27 +220,7 @@ const CompanyInfo = () => {
           </div>
         )}
 
-        {!isLoading && !editMode && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-            <div className="bg-gradient-to-r from-primary to-primary-focus rounded-xl shadow-lg p-6 text-primary-content">
-              <div className="text-3xl font-bold mb-2">5+</div>
-              <div className="text-lg">Лет в бизнесе</div>
-              <div className="text-sm opacity-80 mt-1">Доверяют клиенты</div>
-            </div>
-            
-            <div className="bg-gradient-to-r from-secondary to-secondary-focus rounded-xl shadow-lg p-6 text-secondary-content">
-              <div className="text-3xl font-bold mb-2">24/7</div>
-              <div className="text-lg">Поддержка клиентов</div>
-              <div className="text-sm opacity-80 mt-1">Всегда готовы помочь</div>
-            </div>
-            
-            <div className="bg-gradient-to-r from-accent to-accent-focus rounded-xl shadow-lg p-6 text-accent-content">
-              <div className="text-3xl font-bold mb-2">100+</div>
-              <div className="text-lg">Сотрудников</div>
-              <div className="text-sm opacity-80 mt-1">Преданные профессионалы</div>
-            </div>
-          </div>
-        )}
+  
 
         {editMode && (
           <div className="bg-base-100 rounded-2xl shadow-xl overflow-hidden border border-base-300">

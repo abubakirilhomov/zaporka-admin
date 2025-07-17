@@ -106,7 +106,7 @@ const Sidebar = () => {
       title: "Компания",
       links: [
         {
-          name: "ٌКомпания",
+          name: "Компания",
           route: "company-info", // English route path (you may need to add this route in index.jsx)
           icon: <BsKanban />,
         }
