@@ -31,7 +31,7 @@ const Dashboard = () => {
 
   const fetchUsersData = () => {
     setLoadingUsers(true);
-    fetch("https://zaporka-backend.onrender.com/api/v1/users", {
+    fetch("https://api.zaporka.uz/api/v1/users", {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
@@ -67,7 +67,7 @@ const Dashboard = () => {
 
   const fetchCategoriesData = () => {
     setLoadingCategories(true);
-    fetch("https://zaporka-backend.onrender.com/api/v1/categories")
+    fetch("https://api.zaporka.uz/api/v1/categories")
       .then((res) => {
         if (!res.ok) throw new Error("Ошибка при получении категорий");
         return res.json();
