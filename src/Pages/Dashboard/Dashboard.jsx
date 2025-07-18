@@ -34,7 +34,7 @@ const Dashboard = () => {
 
   const fetchUsersData = () => {
     setLoadingUsers(true);
-    fetch(serverUrl, {
+    fetch("https://api.zaporka.uz/api/v1/users", {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
@@ -70,7 +70,7 @@ const Dashboard = () => {
 
   const fetchCategoriesData = () => {
     setLoadingCategories(true);
-    fetch(`${process.env.REACT_APP_API_URL}/api/v1/categories`)
+    fetch("https://api.zaporka.uz/api/v1/categories")
       .then((res) => {
         if (!res.ok) throw new Error("Ошибка при получении категорий");
         return res.json();

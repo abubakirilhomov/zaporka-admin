@@ -52,7 +52,7 @@ const AllUsers = () => {
     setLoading(true);
     setError(null);
     try {
-      const result = await apiRequest(`${process.env.REACT_APP_API_URL}/api/v1/users`, { method: "GET" });
+      const result = await apiRequest("https://api.zaporka.uz/api/v1/users", { method: "GET" });
       setData(Array.isArray(result) ? result : []);
     } catch (err) {
       setError(err.message);
@@ -95,7 +95,7 @@ const AllUsers = () => {
     }
     setModalState((prev) => ({ ...prev, isActionLoading: true }));
     try {
-      await apiRequest(`${process.env.REACT_APP_API_URL}/api/v1/auth/register`, {
+      await apiRequest("https://api.zaporka.uz/api/v1/auth/register", {
         method: "POST",
         body: JSON.stringify({ username: newUsername, password: newPassword }),
       });
@@ -130,7 +130,7 @@ const AllUsers = () => {
     if (!selectedUser?._id) return;
     setModalState((prev) => ({ ...prev, isActionLoading: true }));
     try {
-      await apiRequest(`${process.env.REACT_APP_API_URL}/api/v1/users/${selectedUser._id}`, {
+      await apiRequest(`https://api.zaporka.uz/api/v1/users/${selectedUser._id}`, {
         method: "PUT",
         body: JSON.stringify({ username: newUsername, password: newPassword || undefined }),
       });
@@ -149,7 +149,7 @@ const AllUsers = () => {
     if (!selectedUser?._id) return;
     setModalState((prev) => ({ ...prev, isActionLoading: true }));
     try {
-      await apiRequest(`${process.env.REACT_APP_API_URL}/api/v1/users/${selectedUser._id}`, {
+      await apiRequest(`https://api.zaporka.uz/api/v1/users/${selectedUser._id}`, {
         method: "DELETE",
       });
       toast.success("Пользователь успешно удален!");
