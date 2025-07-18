@@ -21,6 +21,9 @@ const Dashboard = () => {
   const [errorCategories, setErrorCategories] = useState(null);
   const token = localStorage.getItem("token");
 
+  const serverUrl = `${process.env.REACT_APP_API_URL}/api/v1/users`;
+  console.log("server url:", serverUrl)
+
   useEffect(() => {
     const darkModeMediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
     setIsDarkMode(darkModeMediaQuery.matches);
@@ -31,7 +34,7 @@ const Dashboard = () => {
 
   const fetchUsersData = () => {
     setLoadingUsers(true);
-    fetch("https://zaporka-backend.onrender.com/api/v1/users", {
+    fetch(serverUrl, {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
@@ -67,7 +70,7 @@ const Dashboard = () => {
 
   const fetchCategoriesData = () => {
     setLoadingCategories(true);
-    fetch("https://zaporka-backend.onrender.com/api/v1/categories")
+    fetch(`${process.env.REACT_APP_API_URL}/api/v1/categories`)
       .then((res) => {
         if (!res.ok) throw new Error("Ошибка при получении категорий");
         return res.json();
