@@ -21,6 +21,9 @@ const Dashboard = () => {
   const [errorCategories, setErrorCategories] = useState(null);
   const token = localStorage.getItem("token");
 
+  const serverUrl = `${process.env.REACT_APP_API_URL}/api/v1/users`;
+  console.log("server url:", serverUrl)
+
   useEffect(() => {
     const darkModeMediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
     setIsDarkMode(darkModeMediaQuery.matches);

@@ -10,7 +10,6 @@ import { AiOutlineCalendar } from "react-icons/ai";
 import { BsKanban } from "react-icons/bs";
 import { MdOutlineInventory } from "react-icons/md";
 import { BiCategory } from "react-icons/bi";
-import { NativeAnimation } from "framer-motion";
 
 const Sidebar = () => {
   const { activeMenu, setActiveMenu, screenSize, currentMode } = useStateContext();
@@ -107,10 +106,25 @@ const Sidebar = () => {
       links: [
         {
           name: "Компания",
-          route: "company-info", // English route path (you may need to add this route in index.jsx)
+          route: "company-info",
           icon: <BsKanban />,
         }
       ]
+    }, {
+      title: "Баннер",
+      links: [
+        {
+          name: "Добовить Баннер",
+          route: "add-banner",
+          icon: <BsKanban />,
+        }, 
+        {
+          name: "Все Баннера",
+          route: "all-banners", 
+          icon: <BsKanban />,
+        }
+      ], 
+    
     }
    
     

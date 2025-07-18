@@ -17,7 +17,7 @@ const CategoryDashboard = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch('https://api.zaporka.uz/api/v1/categories');
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/v1/categories`);
       const data = await response.json();
       setCategories(data);
       setFiltered(data);
@@ -52,7 +52,7 @@ const CategoryDashboard = () => {
 
   const handleDelete = async () => {
     try {
-      const response = await fetch(`https://api.zaporka.uz/api/v1/categories/${deleteId}`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/v1/categories/${deleteId}`, {
         method: 'DELETE',
         headers: {
           'accept': '*/*',
@@ -80,7 +80,7 @@ const CategoryDashboard = () => {
       const fileInput = document.querySelector('#imageInput');
       if (fileInput?.files[0]) formData.append('image', fileInput.files[0]);
 
-      const response = await fetch(`https://api.zaporka.uz/api/v1/categories/${id}`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/v1/categories/${id}`, {
         method: 'PUT',
         headers: {
           'accept': '*/*',

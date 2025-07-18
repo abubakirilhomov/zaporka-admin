@@ -25,6 +25,8 @@ import CreateCategory from "./Pages/Categories/CreateCategory/CreateCategory";
 import CategoryDashboard from "./Pages/Categories/CategoryDashboard/CategoryDashboard";
 import NotFoundPage from "./Pages/NotFoundPage/NotFoundPage";
 import CompanyInfo from "./Pages/companyInfo/CompanyInfo";
+import AddBanner from "./Pages/Banner/AddBanner";
+import AllBanners from "./Pages/Banner/AllBanners";
 
 // Define your routes
 const router = createBrowserRouter([
@@ -133,6 +135,22 @@ const router = createBrowserRouter([
         element: (
           <ProtectedRoute>
             <CompanyInfo/>
+          </ProtectedRoute>
+        ),
+      }, 
+      {
+        path: "add-banner",
+        element: (
+          <ProtectedRoute>
+            <AddBanner/>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "all-banners",
+        element: (
+          <ProtectedRoute>
+            <AllBanners/>
           </ProtectedRoute>
         ),
       }
