@@ -112,7 +112,7 @@ const StockManager = () => {
           className="max-w-7xl mx-auto bg-base-100/50 backdrop-blur-xl rounded-3xl shadow-2xl p-6"
           variants={itemVariants}
         >
-          <h2 className="text-2xl sm:text-3xl font-bold text-primary mb-6 text-center">
+          <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-center">
             Поступления на склад
           </h2>
 

@@ -256,7 +256,7 @@ const Orders = () => {
   return (
     <div className="p-4">
       <div className="flex items-center justify-between mb-4">
-        <p className="text-3xl font-bold text-primary">Заказы</p>
+        <p className="text-3xl font-bold">Заказы</p>
       </div>
 
       <CustomTable data={currentOrders} columns={columns} onRowClick={openModal} actions={actions} />

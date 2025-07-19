@@ -10,125 +10,119 @@ import { AiOutlineCalendar } from "react-icons/ai";
 import { BsKanban } from "react-icons/bs";
 import { MdOutlineInventory } from "react-icons/md";
 import { BiCategory } from "react-icons/bi";
+import { FiHome, FiUsers, FiPackage, FiBox, FiTruck, FiPlusCircle } from "react-icons/fi";
+import { FaWarehouse, FaRegBuilding, FaBanner, FaImage } from "react-icons/fa6";
+import { MdOutlineCategory, MdOutlineAddBusiness } from "react-icons/md";
+import { IoMdListBox } from "react-icons/io";
+import { TbListDetails } from "react-icons/tb";
+
 
 const Sidebar = () => {
   const { activeMenu, setActiveMenu, screenSize, currentMode } = useStateContext();
 
-  const links = [
-    {
-      title: "Административная Панель",
-      links: [
-        {
-          name: "Панель",
-          route: "", // English route path
-          icon: <FiShoppingBag />,
-        },
-      ],
-    },
-    {
-      title: "Заказы",
-      links: [
-        {
-          name: "Заказы",
-          route: "orders", // English route path
-          icon: <FiShoppingBag />,
-        },
-      ],
-    },
-    {
-      title: "Пользователи",
-      links: [
-        {
-          name: "Все-пользователи",
-          route: "all-users", // English route path
-          icon: <IoMdContacts />,
-        },
-        // Uncomment and update if needed
-        // {
-        //   name: "Клиенты",
-        //   route: "customers",
-        //   icon: <AiOutlineShoppingCart />,
-        // },
-        // {
-        //   name: "Работники",
-        //   route: "workers",
-        //   icon: <RiContactsLine />,
-        // },
-      ],
-    },
-    {
-      title: "Продукты",
-      links: [
-        {
-          name: "Панель-продуктов",
-          route: "products-dashboard", // English route path
-          icon: <AiOutlineCalendar />,
-        },
-        {
-          name: "Создать-продукт",
-          route: "create-products", // English route path
-          icon: <BsKanban />,
-        },
-      ],
-    },
-    {
-      title: "Инвентаризация",
-      links: [
-        {
-          name: "Приход",
-          route: "stock", // English route path (you may need to add this route in index.jsx)
-          icon: <MdOutlineInventory />,
-        },
-        {
-          name: "Добавить Приход",
-          route: "add-invoice", // English route path (you may need to add this route in index.jsx)
-          icon: <MdAddBusiness />,
-        },
-      ],
-    },
-    {
-      title: "Каталог",
-      links: [
-        {
-          name: "Создать категорию",
-          route: "create-catalogs", // English route path (you may need to add this route in index.jsx)
-          icon: <IoIosAddCircleOutline />,
-        },
-        {
-          name: "Каталог",
-          route: "categories", // English route path (you may need to add this route in index.jsx)
-          icon: <BiCategory />,
-        },
-      ],
-    },
-    {
-      title: "Компания",
-      links: [
-        {
-          name: "Компания",
-          route: "company-info",
-          icon: <BsKanban />,
-        }
-      ]
-    }, {
-      title: "Баннер",
-      links: [
-        {
-          name: "Добовить Баннер",
-          route: "add-banner",
-          icon: <BsKanban />,
-        }, 
-        {
-          name: "Все Баннера",
-          route: "all-banners", 
-          icon: <BsKanban />,
-        }
-      ], 
-    
-    }
-   
-    
-  ];
+const links = [
+  {
+    title: "Административная Панель",
+    links: [
+      {
+        name: "Панель",
+        route: "",
+        icon: <FiHome />,
+      },
+    ],
+  },
+  {
+    title: "Заказы",
+    links: [
+      {
+        name: "Заказы",
+        route: "orders",
+        icon: <IoMdListBox />,
+      },
+    ],
+  },
+  {
+    title: "Пользователи",
+    links: [
+      {
+        name: "Все пользователи",
+        route: "all-users",
+        icon: <FiUsers />,
+      },
+    ],
+  },
+  {
+    title: "Продукты",
+    links: [
+      {
+        name: "Панель продуктов",
+        route: "products-dashboard",
+        icon: <FiPackage />,
+      },
+      {
+        name: "Создать продукт",
+        route: "create-products",
+        icon: <FiPlusCircle />,
+      },
+    ],
+  },
+  {
+    title: "Инвентаризация",
+    links: [
+      {
+        name: "Приход",
+        route: "stock",
+        icon: <FaWarehouse />,
+      },
+      {
+        name: "Добавить Приход",
+        route: "add-invoice",
+        icon: <FiTruck />,
+      },
+    ],
+  },
+  {
+    title: "Каталог",
+    links: [
+      {
+        name: "Создать категорию",
+        route: "create-catalogs",
+        icon: <MdOutlineAddBusiness />,
+      },
+      {
+        name: "Каталог",
+        route: "categories",
+        icon: <MdOutlineCategory />,
+      },
+    ],
+  },
+  {
+    title: "Компания",
+    links: [
+      {
+        name: "Компания",
+        route: "company-info",
+        icon: <FaRegBuilding />,
+      },
+    ],
+  },
+  {
+    title: "Баннер",
+    links: [
+      {
+        name: "Добовить Баннер",
+        route: "add-banner",
+        icon: <FiPlusCircle />,
+      },
+      {
+        name: "Все Баннера",
+        route: "all-banners",
+        icon: <FaImage />,
+      },
+    ],
+  },
+];
+
 
   const handleCloseSidebar = () => {
     if (activeMenu && screenSize <= 900) {

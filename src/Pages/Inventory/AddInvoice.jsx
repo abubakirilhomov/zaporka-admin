@@ -173,7 +173,7 @@ const AddInvoice = () => {
   return (
     <div className="p-4">
       <div className="max-w-7xl bg-base-100/50 backdrop-blur-xl rounded-3xl shadow-2xl p-6">
-        <h2 className="text-2xl sm:text-3xl font-bold text-primary mb-6 text-center">
+        <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-center">
           Добавить новое поступление
         </h2>
 

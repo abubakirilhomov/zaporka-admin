@@ -271,7 +271,7 @@ const AllBanners = () => {
 
     return (
         <div className="p-4 sm:p-6 max-w-7xl mx-auto bg-base-100 rounded-box shadow-lg">
-            <p className="text-2xl sm:text-3xl font-bold mb-6 text-primary">Баннеры</p>
+            <p className="text-2xl sm:text-3xl font-bold mb-6">Баннеры</p>
 
             <div className="flex flex-col sm:flex-row gap-4 mb-6">
                 <input

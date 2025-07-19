@@ -72,7 +72,6 @@ const Navbar = () => {
             >
               <img className="rounded-full w-12" src={avatar} alt="user-profile" />
               <p>
-                <span className="text-base-content text-14">Hi,</span>
                 <span className="text-base-content font-bold ml-1 text-14">{username}</span>
               </p>
               <MdKeyboardArrowDown className="text-base-content text-14" />
@@ -83,17 +82,12 @@ const Navbar = () => {
             <div className="absolute right-0 top-16 bg-base-200 shadow-lg rounded-lg w-48 p-3 z-[9999]">
               <p className="text-center text-base-content font-semibold">{username}</p>
               <div className="mt-2 border-t border-base-300"></div>
-              {/* <Link to="/settings">
-                <button className="w-full text-left px-4 py-2 hover:bg-base-300 rounded-lg flex items-center gap-2">
-                  <MdSettings /> Settings
-                </button>
-              </Link> */}
               <label
                 htmlFor="logout-modal"
                 className="w-full text-left px-4 py-2 hover:bg-base-300 rounded-lg text-error flex items-center gap-2 cursor-pointer"
                 onClick={() => setIsLogoutModalOpen(true)}
               >
-                <RiLogoutBoxRLine /> Logout
+                <RiLogoutBoxRLine /> Выйти
               </label>
             </div>
           )}

@@ -167,7 +167,7 @@ const CategoryDashboard = () => {
 
   return (
     <div className="p-4 sm:p-6 max-w-7xl mx-auto">
-      <h1 className="text-2xl sm:text-3xl font-bold mb-4 text-primary-content">Категории</h1>
+      <h1 className="text-2xl sm:text-3xl font-bold mb-4">Категории</h1>
 
       <div className="flex flex-col sm:flex-row flex-wrap gap-4 mb-6">
         <input
