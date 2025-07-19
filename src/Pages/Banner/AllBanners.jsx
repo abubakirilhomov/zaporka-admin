@@ -4,15 +4,16 @@ import { toast } from 'react-toastify';
 import CustomTable from '../../Components/CustomTable/CustomTable';
 import 'react-toastify/dist/ReactToastify.css';
 import { GoTrash } from "react-icons/go";
+import CustomPagination from '../../Components/CustomPagination/CustomPagination';
 
 const AllBanners = () => {
-    const apiUrl = process.env.REACT_APP_API_URL ;
+    const apiUrl = process.env.REACT_APP_API_URL;
     const token = localStorage.getItem('token');
 
     const [banners, setBanners] = useState([]);
     const [filtered, setFiltered] = useState([]);
     const [search, setSearch] = useState('');
-    const [sortBy, setSortBy] = useState('link'); 
+    const [sortBy, setSortBy] = useState('link');
     const [modalOpen, setModalOpen] = useState(false);
     const [deleteId, setDeleteId] = useState(null);
     const [editId, setEditId] = useState(null);
@@ -41,8 +42,8 @@ const AllBanners = () => {
             const validBanners = Array.isArray(data)
                 ? data.map((b) => ({
                     ...b,
-                    name: b.name || `Баннер ${b._id.slice(-6)}`, 
-                    image: b.image.startsWith('http') ? b.image : `${apiUrl}${b.image}`, 
+                    name: b.name || `Баннер ${b._id.slice(-6)}`,
+                    image: b.image.startsWith('http') ? b.image : `${apiUrl}${b.image}`,
                 }))
                 : [];
             setBanners(validBanners);
@@ -270,7 +271,7 @@ const AllBanners = () => {
     ];
 
     return (
-        <div className="p-4 sm:p-6 max-w-7xl mx-auto bg-base-100 rounded-box shadow-lg">
+        <div className="p-4 sm:p-6 max-w-7xl mx-auto ">
             <p className="text-2xl sm:text-3xl font-bold mb-6">Баннеры</p>
 
             <div className="flex flex-col sm:flex-row gap-4 mb-6">
@@ -307,24 +308,19 @@ const AllBanners = () => {
                         currentPage={currentPage}
                         usersPerPage={perPage}
                     />
-                    <div className="flex justify-center mt-6">
-                        <div className="join">
-                            {Array.from({ length: totalPages }, (_, i) => (
-                                <button
-                                    key={i}
-                                    className={`join-item btn btn-sm ${currentPage === i + 1 ? 'btn-active' : ''}`}
-                                    onClick={() => setCurrentPage(i + 1)}
-                                >
-                                    {i + 1}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
+                    <CustomPagination
+                        totalItems={filtered.length}
+                        itemsPerPage={perPage}
+                        currentPage={currentPage}
+                        onPageChange={setCurrentPage}
+                        totalPages={totalPages}
+                    />
+
                 </>
             )}
 
             {modalOpen && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+                <div className="fixed inset-0 bg-opacity-50 flex justify-center items-center z-50">
                     <div className="bg-base-100 p-6 rounded-box shadow-lg space-y-4 w-full max-w-sm">
                         <h2 className="text-lg font-bold text-error-content">Удалить баннер?</h2>
                         <p className="text-sm text-base-content">Это действие нельзя отменить.</p>

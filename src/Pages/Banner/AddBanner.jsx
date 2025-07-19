@@ -87,21 +87,6 @@ const AddBanner = () => {
                     />
                 </div>
 
-                <div className="form-control">
-                    <label htmlFor="link" className="label">
-                        <span className="label-text">Ссылка</span>
-                    </label>
-                    <input
-                        type="url" 
-                        id="link"
-                        name="link"
-                        value={formData.link}
-                        onChange={handleInputChange}
-                        required
-                        className="input input-bordered input-md w-full"
-                        placeholder="Введите URL (например, https://example.com)"
-                    />
-                </div>
 
                 <div className="form-control">
                     <label htmlFor="image" className="label">

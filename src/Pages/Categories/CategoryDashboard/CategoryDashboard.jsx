@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Edit3, XCircle, CheckCircle, RefreshCw, ArrowUpDown } from 'lucide-react';
 import CustomTable from '../../../Components/CustomTable/CustomTable';
+import CustomPagination from '../../../Components/CustomPagination/CustomPagination';
 
 const CategoryDashboard = () => {
   const [categories, setCategories] = useState([]);
@@ -132,7 +133,7 @@ const CategoryDashboard = () => {
     {
       label: '',
       icon: <Edit3 className="w-4 h-4" />,
-      className: 'btn btn-sm btn-neutral',
+      className: 'btn btn-sm btn-neutral ',
       onClick: (row) => {
         setEditId(row._id);
         setEditName(row.name);
@@ -148,15 +149,15 @@ const CategoryDashboard = () => {
     },
     {
       label: '',
-      icon: <XCircle className="w-4 h-4" />,
+      icon: <XCircle className="w-4 h-4 " />,
       className: 'btn btn-sm btn-outline',
       onClick: () => setEditId(null),
       showIf: (row) => editId === row._id,
     },
     {
       label: '',
-      icon: <XCircle className="w-4 h-4" />,
-      className: 'btn btn-sm btn-error',
+      icon: <XCircle className="w-4 h-4 " />,
+      className: 'btn btn-sm btn-error ml-2',
       onClick: (row) => {
         setModalOpen(true);
         setDeleteId(row._id);
@@ -196,19 +197,14 @@ const CategoryDashboard = () => {
         usersPerPage={perPage}
       />
 
-      <div className="flex justify-center mt-6">
-        <div className="join">
-          {Array.from({ length: totalPages }, (_, i) => (
-            <button
-              key={i}
-              className={`join-item btn ${currentPage === i + 1 ? 'btn-active' : ''}`}
-              onClick={() => setCurrentPage(i + 1)}
-            >
-              {i + 1}
-            </button>
-          ))}
-        </div>
-      </div>
+      <CustomPagination
+        totalItems={filtered.length}
+        itemsPerPage={perPage}
+        currentPage={currentPage}
+        onPageChange={setCurrentPage}
+        totalPages={totalPages}
+      />
+
 
       {modalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">

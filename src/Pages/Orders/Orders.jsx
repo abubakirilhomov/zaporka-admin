@@ -29,7 +29,6 @@ const Orders = () => {
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const itemsPerPage = 10;
 
-  // Calculate total pages correctly
   const totalPages = Math.ceil(ordersWithPayStatus.length / itemsPerPage);
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -266,7 +265,7 @@ const Orders = () => {
         itemsPerPage={itemsPerPage}
         currentPage={currentPage}
         onPageChange={setCurrentPage}
-        totalPages={totalPages} // Use the correctly calculated totalPages
+        totalPages={totalPages} 
       />
 
       <AnimatePresence>
