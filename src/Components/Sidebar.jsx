@@ -85,7 +85,7 @@ const links = [
     title: "Каталог",
     links: [
       {
-        name: "Создать категорию",
+        name: "Создать каталог",
         route: "create-catalogs",
         icon: <MdOutlineAddBusiness />,
       },
