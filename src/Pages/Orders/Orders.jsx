@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { MdOutlinePlaylistAdd, MdClose, MdEdit } from "react-icons/md";
+import { MdOutlinePlaylistAdd, MdClose, MdPayment } from "react-icons/md";
 import CustomTable from "../../Components/CustomTable/CustomTable";
 import Loading from "../../Components/Loading/Loading";
 import CustomPagination from "../../Components/CustomPagination/CustomPagination";
@@ -7,6 +7,20 @@ import { AnimatePresence, motion } from "framer-motion";
 import { toast } from 'react-toastify';
 
 const Orders = () => {
+  
+  const [orders, setOrders] = useState([]);
+  const [ordersWithPayStatus, setOrdersWithPayStatus] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingPayStatus, setIsLoadingPayStatus] = useState(false);
+  const [error, setError] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [modalData, setModalData] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+
+  const itemsPerPage = 10;
+  
+  const totalPages = Math.ceil(ordersWithPayStatus.length / itemsPerPage);
   const token = localStorage.getItem("token");
   const apiUrl = `${process.env.REACT_APP_API_URL}/api/v1/orders`;
 
@@ -17,19 +31,6 @@ const Orders = () => {
     "Content-Type": "application/json",
   };
 
-  const [orders, setOrders] = useState([]);
-  const [ordersWithPayStatus, setOrdersWithPayStatus] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isLoadingPayStatus, setIsLoadingPayStatus] = useState(false);
-  const [error, setError] = useState(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [modalData, setModalData] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [paymentStatus, setPaymentStatus] = useState(false);
-  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
-  const itemsPerPage = 10;
-
-  const totalPages = Math.ceil(ordersWithPayStatus.length / itemsPerPage);
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentOrders = ordersWithPayStatus.slice(indexOfFirstItem, indexOfLastItem);
@@ -84,7 +85,7 @@ const Orders = () => {
     }
   };
 
-  const handleDelate = async () => {
+  const handleDelete = async () => {
     if (!modalData || !modalData._id) return;
 
     try {
@@ -109,26 +110,22 @@ const Orders = () => {
     }
   };
 
-  const handleStatusChange = (e) => {
-    const val = e.target.value === "true";
-    setPaymentStatus(val);
-  };
-
-  const handleChangeStatus = async () => {
-    if (!modalData || !modalData._id) {
-      console.error("modalData yo'q");
+  const handleChangeStatus = async (order) => {
+    if (!order || !order._id) {
+      console.error("order yo'q");
       return;
     }
 
     setIsUpdatingStatus(true);
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/v1/orders/${modalData._id}/pay`, {
+      const newStatus = !order.isPaid; // Toggle the current payment status
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/v1/orders/${order._id}/pay`, {
         method: "PATCH",
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ isPaid: paymentStatus }),
+        body: JSON.stringify({ isPaid: newStatus }),
       });
 
       if (!response.ok) {
@@ -141,18 +138,17 @@ const Orders = () => {
       const updatedOrder = await response.json();
 
       setOrders(prev =>
-        prev.map(order =>
-          order._id === updatedOrder._id ? updatedOrder : order
+        prev.map(o =>
+          o._id === updatedOrder._id ? updatedOrder : o
         )
       );
       setOrdersWithPayStatus(prev =>
-        prev.map(order =>
-          order._id === updatedOrder._id ? updatedOrder : order
+        prev.map(o =>
+          o._id === updatedOrder._id ? updatedOrder : o
         )
       );
 
       toast.success("Status muvaffaqiyatli yangilandi");
-      closeModal();
     } catch (err) {
       console.error("PATCH xato:", err);
       toast.error(err.message);
@@ -163,7 +159,6 @@ const Orders = () => {
 
   const openModal = (order) => {
     setModalData(order);
-    setPaymentStatus(order?.isPaid || false); // Fixed: Use isPaid instead of _id
     setIsModalOpen(true);
   };
 
@@ -223,12 +218,19 @@ const Orders = () => {
       ),
     },
     {
-      key: "edit",
-      label: "Редактировать",
-      render: (row) => (
-        <button onClick={() => openModal(row)} className="btn btn-sm btn-outline btn-primary flex items-center gap-1">
-          <MdEdit />
-          Редактировать
+      key: "updatePayment",
+      label: "Обновить оплату",
+      render: (_, order) => (
+        <button
+          onClick={(e) => {
+            e.stopPropagation(); // Prevent row click event from triggering
+            handleChangeStatus(order);
+          }}
+          className={`btn btn-sm ${isUpdatingStatus ? "btn-disabled" : "btn-warning"}`}
+          disabled={isUpdatingStatus}
+        >
+          <MdPayment className="mr-1" />
+          Обновить
         </button>
       ),
     },
@@ -265,7 +267,7 @@ const Orders = () => {
         itemsPerPage={itemsPerPage}
         currentPage={currentPage}
         onPageChange={setCurrentPage}
-        totalPages={totalPages} 
+        totalPages={totalPages}
       />
 
       <AnimatePresence>
@@ -323,16 +325,6 @@ const Orders = () => {
                 </div>
               </div>
               <div className="flex gap-4 items-center justify-end">
-                <button
-                  onClick={handleChangeStatus}
-                  className="btn btn-success btn-xl"
-                  disabled={isUpdatingStatus}
-                >
-                  {isUpdatingStatus ? "Обновление..." : `Обновить оплату`}
-                </button>
-                <button onClick={handleDelate} className="btn btn-error">
-                  Удалить
-                </button>
                 <button className="btn btn-outline btn-error" onClick={closeModal}>
                   Закрыть
                 </button>
