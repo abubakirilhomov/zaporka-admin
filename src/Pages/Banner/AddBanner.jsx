@@ -81,9 +81,8 @@ const AddBanner = () => {
                         name="name"
                         value={formData.name}
                         onChange={handleInputChange}
-                        required
                         className="input input-bordered input-md w-full"
-                        placeholder="Введите название категории"
+                        placeholder="Введите название категории (не обязательно)"
                     />
                 </div>
 
@@ -124,7 +123,7 @@ const AddBanner = () => {
                     {loading ? (
                         <span className="loading loading-spinner loading-sm"></span>
                     ) : (
-                        'Создать категорию'
+                        'Создать баннер'
                     )}
                 </button>
             </form>

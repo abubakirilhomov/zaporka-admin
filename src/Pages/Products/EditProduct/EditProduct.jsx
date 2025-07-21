@@ -8,10 +8,16 @@ import axios from "axios";
 const EditProduct = ({ product, apiUrl, token, onSave, onDelete }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedProduct, setEditedProduct] = useState({ ...product });
+  const [existingImages, setExistingImages] = useState(product.swiperImages || []);
+  const [newImages, setNewImages] = useState([]);
 
   const handleEditToggle = () => {
     setIsEditing(!isEditing);
-    if (!isEditing) setEditedProduct({ ...product });
+    if (!isEditing) {
+      setEditedProduct({ ...product });
+      setExistingImages(product.swiperImages || []);
+      setNewImages([]);
+    }
   };
 
   const handleInputChange = (e) => {
@@ -30,7 +36,6 @@ const EditProduct = ({ product, apiUrl, token, onSave, onDelete }) => {
       "maxPressure",
       "application",
       "advantages",
-      "swiperImages",
     ].includes(name);
 
     setEditedProduct((prev) => ({
@@ -41,14 +46,47 @@ const EditProduct = ({ product, apiUrl, token, onSave, onDelete }) => {
     }));
   };
 
+  const handleImagesChange = (updatedImages, updatedNewImages) => {
+    setExistingImages(updatedImages);
+    setNewImages(updatedNewImages);
+  };
+
   const handleSave = async () => {
     if (!editedProduct || !editedProduct._id) return;
+
     try {
+      // Convert new images to Base64
+      const base64Images = await Promise.all(
+        newImages.map((file) =>
+          new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+          })
+        )
+      );
+
+      // Combine existing images (URLs or Base64) with new Base64 images
+      const updatedImages = [...existingImages, ...base64Images];
+
+      // Prepare updated product data
+      const updatedProduct = {
+        ...editedProduct,
+        swiperImages: updatedImages,
+      };
+
+      // Update product via API
       const updateUrl = `${apiUrl}/${editedProduct._id}`;
-      await axios.put(updateUrl, editedProduct, {
+      await axios.put(updateUrl, updatedProduct, {
         headers: { Authorization: `Bearer ${token}` },
       });
+
+      setIsEditing(false);
+      setExistingImages(updatedImages);
+      setNewImages([]);
       onSave();
+      toast.success("Продукт и изображения успешно обновлены");
     } catch (err) {
       toast.error("Ошибка при обновлении продукта: " + err.message);
     }
@@ -148,13 +186,9 @@ const EditProduct = ({ product, apiUrl, token, onSave, onDelete }) => {
             );
           })}
           <EditProductImages
-            initialImages={editedProduct.swiperImages || []}
-            productId={editedProduct._id}
-            token={token}
-            onSave={() => {
-              setIsEditing(false);
-              onSave();
-            }}
+            initialImages={existingImages}
+            onImagesChange={handleImagesChange}
+            readOnly={false}
           />
         </div>
       ) : (
@@ -177,9 +211,7 @@ const EditProduct = ({ product, apiUrl, token, onSave, onDelete }) => {
           })}
           <EditProductImages
             initialImages={product.swiperImages || []}
-            productId={product._id}
-            token={token}
-            onSave={onSave}
+            onImagesChange={() => {}} // No-op in read-only mode
             readOnly={true}
           />
         </div>
