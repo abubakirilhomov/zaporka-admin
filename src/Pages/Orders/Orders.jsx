@@ -85,30 +85,6 @@ const Orders = () => {
     }
   };
 
-  const handleDelete = async () => {
-    if (!modalData || !modalData._id) return;
-
-    try {
-      const request = await fetch(`${process.env.REACT_APP_API_URL}/api/v1/orders/${modalData._id}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        }
-      });
-
-      if (!request.ok) throw new Error("Ошибка при удалении");
-
-      toast.success("Заказ успешно удалён");
-
-      setOrders(prev => prev.filter(order => order._id !== modalData._id));
-      setOrdersWithPayStatus(prev => prev.filter(order => order._id !== modalData._id));
-
-      closeModal();
-    } catch (error) {
-      console.error("Failed to delete order:", error);
-      toast.error("Не удалось удалить заказ");
-    }
-  };
 
   const handleChangeStatus = async (order) => {
     if (!order || !order._id) {
@@ -223,17 +199,22 @@ const Orders = () => {
       render: (_, order) => (
         <button
           onClick={(e) => {
-            e.stopPropagation(); // Prevent row click event from triggering
+            e.stopPropagation();
             handleChangeStatus(order);
           }}
-          className={`btn btn-sm ${isUpdatingStatus ? "btn-disabled" : "btn-warning"}`}
-          disabled={isUpdatingStatus}
+          className={`btn btn-sm flex items-center gap-1 ${
+            isUpdatingStatus || order.isPaid
+              ? "btn-disabled bg-base-300 text-base-content cursor-not-allowed"
+              : "btn-warning"
+          }`}
+          disabled={isUpdatingStatus || order.isPaid}
         >
-          <MdPayment className="mr-1" />
+          <MdPayment />
           Обновить
         </button>
       ),
     },
+    
   ];
 
   const actions = [
