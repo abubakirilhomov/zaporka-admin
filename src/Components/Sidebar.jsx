@@ -110,7 +110,7 @@ const links = [
     title: "Баннер",
     links: [
       {
-        name: "Добовить Баннер",
+        name: "Добавить Баннер",
         route: "add-banner",
         icon: <FiPlusCircle />,
       },
