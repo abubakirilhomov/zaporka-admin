@@ -1,17 +1,14 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { MdOutlinePlaylistAdd, MdClose, MdPayment } from "react-icons/md";
 import CustomTable from "../../Components/CustomTable/CustomTable";
 import Loading from "../../Components/Loading/Loading";
 import CustomPagination from "../../Components/CustomPagination/CustomPagination";
 import { AnimatePresence, motion } from "framer-motion";
-import { toast } from 'react-toastify';
+import { toast } from "react-toastify";
 
 const Orders = () => {
-  
   const [orders, setOrders] = useState([]);
-  const [ordersWithPayStatus, setOrdersWithPayStatus] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isLoadingPayStatus, setIsLoadingPayStatus] = useState(false);
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [modalData, setModalData] = useState(null);
@@ -19,12 +16,10 @@ const Orders = () => {
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
   const itemsPerPage = 10;
-  
-  const totalPages = Math.ceil(ordersWithPayStatus.length / itemsPerPage);
+
+  const totalPages = Math.ceil(orders.length / itemsPerPage);
   const token = localStorage.getItem("token");
   const apiUrl = `${process.env.REACT_APP_API_URL}/api/v1/orders`;
-
-  const fetchedOnce = useRef(false);
 
   const headers = {
     Authorization: `Bearer ${token}`,
@@ -33,7 +28,7 @@ const Orders = () => {
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentOrders = ordersWithPayStatus.slice(indexOfFirstItem, indexOfLastItem);
+  const currentOrders = orders.slice(indexOfFirstItem, indexOfLastItem);
 
   const fetchOrders = async () => {
     setIsLoading(true);
@@ -49,42 +44,6 @@ const Orders = () => {
     }
   };
 
-  const fetchPayStatuses = async (ordersList) => {
-    if (!Array.isArray(ordersList) || ordersList.length === 0) return;
-    setIsLoadingPayStatus(true);
-    try {
-      const updated = await Promise.all(
-        ordersList.map(async (order) => {
-          try {
-            const res = await fetch(`${process.env.REACT_APP_API_URL}/api/v1/orders/${order._id}`, {
-              headers,
-            });
-            const orderData = await res.json();
-            return {
-              ...order,
-              firstName: order.firstName || "",
-              lastName: order.lastName || "",
-              phoneNumber: order.phoneNumber || "",
-              address: order.address || "",
-              totalPrice: order.totalPrice || 0,
-              isPaid: orderData?.isPaid || false,
-            };
-          } catch {
-            return {
-              ...order,
-              isPaid: false,
-            };
-          }
-        })
-      );
-      setOrdersWithPayStatus(updated);
-    } catch (err) {
-      console.error("Ошибка статуса оплаты:", err);
-    } finally {
-      setIsLoadingPayStatus(false);
-    }
-  };
-
   const handleChangeStatus = async (order) => {
     if (!order || !order._id) {
       console.error("order yo'q");
@@ -94,14 +53,17 @@ const Orders = () => {
     setIsUpdatingStatus(true);
     try {
       const newStatus = !order.isPaid; // Toggle the current payment status
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/v1/orders/${order._id}/pay`, {
-        method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ isPaid: newStatus }),
-      });
+      const response = await fetch(
+        `${process.env.REACT_APP_API_URL}/api/v1/orders/${order._id}/pay`,
+        {
+          method: "PATCH",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ isPaid: newStatus }),
+        }
+      );
 
       if (!response.ok) {
         if (response.status === 403) {
@@ -110,19 +72,8 @@ const Orders = () => {
         throw new Error("Statusni yangilashda xatolik");
       }
 
-      const updatedOrder = await response.json();
-
-      setOrders(prev =>
-        prev.map(o =>
-          o._id === updatedOrder._id ? updatedOrder : o
-        )
-      );
-      setOrdersWithPayStatus(prev =>
-        prev.map(o =>
-          o._id === updatedOrder._id ? updatedOrder : o
-        )
-      );
-
+      // Обновляем данные заказов после успешного изменения статуса
+      await fetchOrders();
       toast.success("Status muvaffaqiyatli yangilandi");
     } catch (err) {
       console.error("PATCH xato:", err);
@@ -143,17 +94,8 @@ const Orders = () => {
   };
 
   useEffect(() => {
-    if (!fetchedOnce.current) {
-      fetchedOnce.current = true;
-      fetchOrders();
-    }
+    fetchOrders();
   }, []);
-
-  useEffect(() => {
-    if (orders.length > 0) {
-      fetchPayStatuses(orders);
-    }
-  }, [orders]);
 
   const columns = [
     {
@@ -186,7 +128,9 @@ const Orders = () => {
       label: "Оплата",
       render: (val) => (
         <span
-          className={`px-2 py-1 rounded-full text-xs font-bold ${val ? "bg-success text-base-300" : "bg-error text-base-300"}`}
+          className={`px-2 py-1 rounded-full text-xs font-bold ${
+            val ? "bg-success text-base-300" : "bg-error text-base-300"
+          }`}
         >
           {val ? "Оплачено" : "Не оплачено"}
         </span>
@@ -213,7 +157,6 @@ const Orders = () => {
         </button>
       ),
     },
-    
   ];
 
   const actions = [
@@ -231,7 +174,7 @@ const Orders = () => {
     exit: { opacity: 0, y: 50 },
   };
 
-  if (isLoading || isLoadingPayStatus) return <Loading />;
+  if (isLoading) return <Loading />;
   if (error) return <div className="text-error">{error}</div>;
 
   return (
@@ -239,17 +182,19 @@ const Orders = () => {
       <div className="flex items-center justify-between mb-4">
         <p className="text-3xl font-bold">Заказы</p>
       </div>
-
-      <CustomTable data={currentOrders} columns={columns} onRowClick={openModal} actions={actions} />
-
+      <CustomTable
+        data={currentOrders}
+        columns={columns}
+        onRowClick={openModal}
+        actions={actions}
+      />
       <CustomPagination
-        totalItems={ordersWithPayStatus.length}
+        totalItems={orders.length}
         itemsPerPage={itemsPerPage}
         currentPage={currentPage}
         onPageChange={setCurrentPage}
         totalPages={totalPages}
       />
-
       <AnimatePresence>
         {isModalOpen && modalData && (
           <motion.div
@@ -265,36 +210,53 @@ const Orders = () => {
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-2xl font-bold text-primary">Детали заказа</h3>
-                <button className="btn btn-sm btn-circle btn-ghost" onClick={closeModal}>
+                <h3 className="text-2xl font-bold text-primary">
+                  Детали заказа
+                </h3>
+                <button
+                  className="btn btn-sm btn-circle btn-ghost"
+                  onClick={closeModal}
+                >
                   <MdClose className="text-xl" />
                 </button>
               </div>
               <div className="mb-6 p-4 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-lg space-y-3">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm font-medium text-base-content/70">Имя:</p>
+                    <p className="text-sm font-medium text-base-content/70">
+                      Имя:
+                    </p>
                     <p>{modalData.firstName}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-base-content/70">Фамилия:</p>
+                    <p className="text-sm font-medium text-base-content/70">
+                      Фамилия:
+                    </p>
                     <p>{modalData.lastName}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-base-content/70">Телефон:</p>
+                    <p className="text-sm font-medium text-base-content/70">
+                      Телефон:
+                    </p>
                     <p>{modalData.phoneNumber}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-base-content/70">Адрес:</p>
+                    <p className="text-sm font-medium text-base-content/70">
+                      Адрес:
+                    </p>
                     <p>{modalData.address}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-base-content/70">Сумма:</p>
+                    <p className="text-sm font-medium text-base-content/70">
+                      Сумма:
+                    </p>
                     <p>{modalData.totalPrice?.toLocaleString()} UZS</p>
                   </div>
                   {Array.isArray(modalData.products) && (
                     <div className="sm:col-span-2">
-                      <p className="text-sm font-medium text-base-content/70">Товары:</p>
+                      <p className="text-sm font-medium text-base-content/70">
+                        Товары:
+                      </p>
                       <ul className="list-disc list-inside">
                         {modalData.products.map((prod, idx) => (
                           <li key={idx}>{prod?.title || "Без названия"}</li>
@@ -305,7 +267,10 @@ const Orders = () => {
                 </div>
               </div>
               <div className="flex gap-4 items-center justify-end">
-                <button className="btn btn-outline btn-error" onClick={closeModal}>
+                <button
+                  className="btn btn-outline btn-error"
+                  onClick={closeModal}
+                >
                   Закрыть
                 </button>
               </div>
