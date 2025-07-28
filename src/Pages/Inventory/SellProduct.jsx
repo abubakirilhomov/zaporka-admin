@@ -70,7 +70,8 @@ const SellProduct = () => {
   };
 
   const handleConfirm = async () => {
-    if (tempItems.length === 0) return toast.error("Добавьте хотя бы один товар");
+    if (tempItems.length === 0)
+      return toast.error("Добавьте хотя бы один товар");
 
     try {
       const response = await fetch(`${apiUrl}/api/v1/stock/sell`, {
@@ -112,17 +113,25 @@ const SellProduct = () => {
       key: "actions",
       label: "Удалить",
       render: (v, r, i) => (
-        <button className="btn btn-error btn-sm" onClick={() => handleDeleteItem(i)}>
+        <button
+          className="btn btn-error btn-sm"
+          onClick={() => handleDeleteItem(i)}
+        >
           <MdDelete className="text-lg" />
         </button>
       ),
     },
   ];
-
+  const totalSum = tempItems.reduce(
+    (acc, item) => acc + item.amount * item.sellingPrice,
+    0
+  );
   return (
     <div className="p-4">
       <div className="max-w-7xl bg-base-100/50 backdrop-blur-xl rounded-3xl shadow-2xl p-6">
-        <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-center">Продажа товаров</h2>
+        <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-center">
+          Продажа товаров
+        </h2>
 
         <div className="flex flex-col lg:flex-row gap-6">
           <div className="lg:w-1/2 space-y-4">
@@ -179,7 +188,15 @@ const SellProduct = () => {
                 emptyMessage="Нет выбранных товаров"
               />
             </div>
-            <button className="btn btn-success text-white w-full mt-4" onClick={handleConfirm}>
+            {tempItems.length > 0 && (
+              <div className="text-right text-lg font-semibold mt-4">
+                Общая сумма: {totalSum.toLocaleString("RU-ru")} UZS
+              </div>
+            )}
+            <button
+              className="btn btn-success text-white w-full mt-4"
+              onClick={handleConfirm}
+            >
               Подтвердить продажу
             </button>
           </div>
