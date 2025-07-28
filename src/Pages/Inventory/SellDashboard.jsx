@@ -223,7 +223,7 @@ const SellDashboard = () => {
                 whileTap={{ scale: 0.95 }}
               >
                 <MdOutlineAddBox className="text-xl" />
-                New Sale
+                Новая Продажа
               </motion.button>
             </Link>
           </div>
