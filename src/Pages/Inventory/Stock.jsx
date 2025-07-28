@@ -12,12 +12,13 @@ export default function StockRemainder() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:8000"
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await axios.get("http://localhost:8000/api/v1/stock/remainder", {
+        const response = await axios.get(`${apiUrl}/api/v1/stock/remainder`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },

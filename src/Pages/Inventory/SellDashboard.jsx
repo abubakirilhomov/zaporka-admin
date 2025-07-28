@@ -11,7 +11,7 @@ import ErrorBoundary from "./ErrorBoundary";
 import ViewModeTabs from "./ViewModeTabs";
 import { itemVariants, modalVariants } from "./animationVariants";
 
-const API_URL = "http://localhost:8000";
+const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
 const nestedColumns = [
   {
