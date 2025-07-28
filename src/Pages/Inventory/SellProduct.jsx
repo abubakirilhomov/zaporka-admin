@@ -6,7 +6,7 @@ import { MdDelete } from "react-icons/md";
 import CustomTable from "../../Components/CustomTable/CustomTable";
 
 const SellProduct = () => {
-  const apiUrl = "http://localhost:8000";
+  const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:8000";
   const token = localStorage.getItem("token");
 
   const authHeaders = token

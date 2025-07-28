@@ -14,9 +14,18 @@ import { itemVariants, modalVariants } from "./animationVariants";
 const API_URL = "http://localhost:8000";
 
 const nestedColumns = [
-  { label: "Product", key: "product.title", render: (value, row) => row?.product?.title },
+  {
+    label: "Product",
+    key: "product.title",
+    render: (value, row) => row?.product?.title,
+  },
   { label: "Quantity", key: "amount" },
-  { label: "Price", key: "sellingPrice", render: (value) => value.toLocaleString("ru-RU", { minimumFractionDigits: 2 }) + " UZS" },
+  {
+    label: "Price",
+    key: "sellingPrice",
+    render: (value) =>
+      value.toLocaleString("ru-RU", { minimumFractionDigits: 2 }) + " UZS",
+  },
 ];
 
 const SellDashboard = () => {
@@ -68,7 +77,7 @@ const SellDashboard = () => {
     } finally {
       setLoading(false);
     }
-  }, [ authHeaders]);
+  }, [authHeaders]);
 
   useEffect(() => {
     if (!token) {
@@ -79,7 +88,7 @@ const SellDashboard = () => {
     }
 
     fetchData();
-  }, [token, navigate]);
+  }, [token, navigate, viewMode, currentPage]);
 
   useEffect(() => {
     if (error?.includes("401")) {
@@ -93,16 +102,20 @@ const SellDashboard = () => {
   const columns =
     viewMode === "groups"
       ? [
-          { label: "Date", key: "date" },
-          { label: "Quantity", key: "quantity" },
-          { label: "Products", key: "products" },
-          { label: "Total", key: "total" },
-          { label: "Sold By", key: "soldBy" },
+          { label: "Дата", key: "date" },
+          { label: "Количество", key: "quantity" },
+          { label: "Продукты", key: "products" },
+          { label: "Общая стоимость", key: "total" },
+          { label: "Цена продажи", key: "soldBy" },
         ]
       : [
-          { label: "Product", key: "product.title", render: (value, row) => row?.product?.title },
-          { label: "Quantity", key: "quantity" },
-          { label: "Price", key: "price" },
+          {
+            label: "Продукт",
+            key: "product",
+            render: (value, row) => row?.product,
+          },
+          { label: "Количество", key: "quantity" },
+          { label: "Цена", key: "price" },
         ];
 
   const handleRowClick = useCallback((row) => {
@@ -124,12 +137,14 @@ const SellDashboard = () => {
             id: sale._id,
             date: new Date(sale.date).toLocaleDateString("ru-RU"),
             quantity: sale.items.reduce((sum, item) => sum + item.amount, 0),
-            products: sale.items.map((item) => item.product?.title || "Unknown").join(", "),
+            products: sale.items
+              .map((item) => item.product?.title || "Unknown")
+              .join(", "),
             total: sale.items
               .reduce((sum, item) => sum + item.sellingPrice * item.amount, 0)
               .toLocaleString("ru-RU", { minimumFractionDigits: 2 }),
             soldBy: sale.soldBy,
-            items: sale.items, // Include items for modal
+            items: sale.items,
           };
           console.log("Mapped Sale Data:", mappedData);
           return mappedData;
@@ -139,7 +154,7 @@ const SellDashboard = () => {
             id: log._id,
             product: log.product?.title || "Unknown",
             quantity: log.amount,
-            price: log.sellingPrice.toLocaleString("ru-RU", {
+            price: Number(log.sellingPrice || 0).toLocaleString("ru-RU", {
               minimumFractionDigits: 2,
             }),
           };
@@ -148,7 +163,7 @@ const SellDashboard = () => {
         }) || [];
 
   const total = salesData?.total || 0;
-
+  console.log(salesData.data);
   if (!token) {
     return (
       <div className="text-error text-center" role="alert">
@@ -197,6 +212,7 @@ const SellDashboard = () => {
                 console.log("View Mode Changed:", { newMode: mode });
                 setViewMode(mode);
                 setCurrentPage(1);
+                setSalesData({ data: [], total: 0 }); 
               }}
               setCurrentPage={setCurrentPage}
             />
@@ -233,80 +249,93 @@ const SellDashboard = () => {
               No sales data available.
             </p>
           )}
-
         </div>
-          <AnimatePresence>
-            {isModalOpen && selectedInvoice && (
+        <AnimatePresence>
+          {isModalOpen && selectedInvoice && (
+            <motion.div
+              className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              onClick={closeModal}
+            >
               <motion.div
-                className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.3 }}
-                onClick={closeModal}
+                className="bg-base-100 rounded-3xl shadow-2xl p-6 max-w-3xl w-full max-h-[90vh] overflow-y-auto"
+                variants={modalVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                onClick={(e) => e.stopPropagation()}
               >
-                <motion.div
-                  className="bg-base-100 rounded-3xl shadow-2xl p-6 max-w-3xl w-full max-h-[90vh] overflow-y-auto"
-                  variants={modalVariants}
-                  initial="hidden"
-                  animate="visible"
-                  exit="exit"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-2xl font-bold text-primary">Детали продажи</h3>
-                    <button
-                      className="btn btn-sm btn-circle btn-ghost"
-                      onClick={closeModal}
-                    >
-                      <MdClose className="text-xl" />
-                    </button>
-                  </div>
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-2xl font-bold text-primary">
+                    Детали продажи
+                  </h3>
+                  <button
+                    className="btn btn-sm btn-circle btn-ghost"
+                    onClick={closeModal}
+                  >
+                    <MdClose className="text-xl" />
+                  </button>
+                </div>
 
-                  <div className="mb-6 p-4 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-lg shadow-inner">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                        <p className="text-sm font-medium text-base-content/70">ID продажи:</p>
-                        <p className="text-base-content">{selectedInvoice.id}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-base-content/70">Продавец:</p>
-                        <p className="text-base-content">{selectedInvoice.soldBy || "Не указано"}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-base-content/70">Дата:</p>
-                        <p className="text-base-content">
-                          {selectedInvoice.date || "Н/Д"}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-base-content/70">Общее количество товаров:</p>
-                        <p className="text-base-content">
-                          {selectedInvoice.quantity || 0} товаров
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-base-content/70">Общая стоимость:</p>
-                        <p className="text-base-content">
-                          {selectedInvoice.total} UZS
-                        </p>
-                      </div>
+                <div className="mb-6 p-4 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-lg shadow-inner">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm font-medium text-base-content/70">
+                        ID продажи:
+                      </p>
+                      <p className="text-base-content">{selectedInvoice.id}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-base-content/70">
+                        Продавец:
+                      </p>
+                      <p className="text-base-content">
+                        {selectedInvoice.soldBy || "Не указано"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-base-content/70">
+                        Дата:
+                      </p>
+                      <p className="text-base-content">
+                        {selectedInvoice.date || "Н/Д"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-base-content/70">
+                        Общее количество товаров:
+                      </p>
+                      <p className="text-base-content">
+                        {selectedInvoice.quantity || 0} товаров
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-base-content/70">
+                        Общая стоимость:
+                      </p>
+                      <p className="text-base-content">
+                        {selectedInvoice.total} UZS
+                      </p>
                     </div>
                   </div>
+                </div>
 
-                  <h4 className="text-lg font-semibold text-primary mb-2">
-                    Товары в продаже
-                  </h4>
-                  <CustomTable
-                    data={selectedInvoice.items || []}
-                    columns={nestedColumns}
-                    actions={[]}
-                    emptyMessage="Товары отсутствуют"
-                  />
-                </motion.div>
+                <h4 className="text-lg font-semibold text-primary mb-2">
+                  Товары в продаже
+                </h4>
+                <CustomTable
+                  data={selectedInvoice.items || []}
+                  columns={nestedColumns}
+                  actions={[]}
+                  emptyMessage="Товары отсутствуют"
+                />
               </motion.div>
-            )}
-          </AnimatePresence>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.div>
     </ErrorBoundary>
   );
