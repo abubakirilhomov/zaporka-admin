@@ -1,20 +1,15 @@
 import React from "react";
 import { Link, NavLink } from "react-router-dom";
-import { MdAddBusiness, MdOutlineCancel } from "react-icons/md";
+import { MdOutlineCancel, MdOutlinePointOfSale } from "react-icons/md";
 import { TooltipComponent } from "@syncfusion/ej2-react-popups";
-import { IoIosAddCircleOutline } from "react-icons/io";
 import { useStateContext } from "../Contexts/ContextProvider";
-import { FiShoppingBag } from "react-icons/fi";
-import { IoMdContacts } from "react-icons/io";
-import { AiOutlineCalendar } from "react-icons/ai";
-import { BsKanban } from "react-icons/bs";
-import { MdOutlineInventory } from "react-icons/md";
-import { BiCategory } from "react-icons/bi";
-import { FiHome, FiUsers, FiPackage, FiBox, FiTruck, FiPlusCircle } from "react-icons/fi";
-import { FaWarehouse, FaRegBuilding, FaBanner, FaImage } from "react-icons/fa6";
+import { FiHome, FiUsers, FiPackage, FiTruck, FiPlusCircle } from "react-icons/fi";
+import { FaWarehouse, FaRegBuilding, FaImage } from "react-icons/fa6";
 import { MdOutlineCategory, MdOutlineAddBusiness } from "react-icons/md";
 import { IoMdListBox } from "react-icons/io";
-import { TbListDetails } from "react-icons/tb";
+import { MdOutlineSell } from "react-icons/md";
+import { RiStockLine } from "react-icons/ri";
+
 
 
 const Sidebar = () => {
@@ -78,6 +73,21 @@ const links = [
         name: "Добавить Приход",
         route: "add-invoice",
         icon: <FiTruck />,
+      },
+      {
+        name: "Добавить продажу",
+        route: "add-sell",
+        icon: <MdOutlineSell />,
+      },
+      {
+        name: "Продажа",
+        route: "sell-dashboard",
+        icon: <MdOutlinePointOfSale />,
+      },
+      {
+        name: "Остаток",
+        route: "stock-remainder",
+        icon: <RiStockLine />,
       },
     ],
   },

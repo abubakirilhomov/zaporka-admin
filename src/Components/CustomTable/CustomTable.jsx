@@ -50,12 +50,10 @@ const CustomTable = ({
                   {columns.map((column) => (
                     <td key={column.key} className="border p-2">
                       {column.render
-                        ? column.render(
-                            row[column.key],
-                            row,
-                            index,
-                            { currentPage, usersPerPage }
-                          )
+                        ? column.render(row[column.key], row, index, {
+                            currentPage,
+                            usersPerPage,
+                          })
                         : row[column.key] || "Н/Д"}
                     </td>
                   ))}

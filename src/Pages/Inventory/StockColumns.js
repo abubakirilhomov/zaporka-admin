@@ -38,7 +38,7 @@ export const groupColumns = [
     render: (value, row) =>
       formatCurrency(
         row.items?.reduce(
-          (sum, item) => sum + (item.costPrice || 0) * (item.amount || 0),
+          (sum, item) => sum + (item.sellingPrice || 0) * (item.amount || 0),
           0
         ) || 0
       ),

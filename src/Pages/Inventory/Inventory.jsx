@@ -63,6 +63,7 @@ const StockManager = () => {
   // Data Extraction
   const data = receiptsData?.data && Array.isArray(receiptsData.data) ? receiptsData.data : [];
   const total = receiptsData?.total || 0;
+  console.log(data)
 
   // Event Handlers
   const handleRowClick = useCallback((row) => {
@@ -246,14 +247,14 @@ const StockManager = () => {
                       </p>
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-base-content/70">Общая стоимость:</p>
+                      <p className="text-sm font-medium text-base-content/70">Общaя стоимость:</p>
                       <p className="text-base-content">
                         {(
                           selectedInvoice.items?.reduce(
                             (sum, item) => sum + (item.costPrice || 0) * (item.amount || 0),
                             0
                           ) || 0
-                        ).toFixed(2)}{" "}
+                        ).toLocaleString("ru-RU")} {" "}
                         UZS
                       </p>
                     </div>

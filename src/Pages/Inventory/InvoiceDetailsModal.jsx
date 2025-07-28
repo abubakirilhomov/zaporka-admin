@@ -27,7 +27,7 @@ const InvoiceDetailsModal = ({ isOpen, onClose, invoice }) => {
         })
       : "Н/Д";
 
-  const totalCost = (invoice.items?.reduce((sum, item) => sum + (item.costPrice || 0) * (item.amount || 0), 0) || 0).toFixed(2);
+  const totalCost = (invoice.items?.reduce((sum, item) => sum + (item.sellingPrice || 0) * (item.amount || 0), 0) || 0).toFixed(2);
 
   return (
     <AnimatePresence>

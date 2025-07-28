@@ -27,6 +27,9 @@ import NotFoundPage from "./Pages/NotFoundPage/NotFoundPage";
 import CompanyInfo from "./Pages/companyInfo/CompanyInfo";
 import AddBanner from "./Pages/Banner/AddBanner";
 import AllBanners from "./Pages/Banner/AllBanners";
+import SellProduct from "./Pages/Inventory/SellProduct";
+import Stock from "./Pages/Inventory/Stock"
+import SellDashboard from "./Pages/Inventory/SellDashboard";
 
 // Define your routes
 const router = createBrowserRouter([
@@ -107,6 +110,14 @@ const router = createBrowserRouter([
         ),
       },
       {
+        path: "sell-dashboard",
+        element: (
+          <ProtectedRoute>
+            <SellDashboard/>
+          </ProtectedRoute>
+        ),
+      },
+      {
         path: "create-catalogs",
         element: (
           <ProtectedRoute>
@@ -127,6 +138,22 @@ const router = createBrowserRouter([
         element: (
           <ProtectedRoute>
             <AddInvoice/>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "add-sell",
+        element: (
+          <ProtectedRoute>
+            <SellProduct/>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "stock-remainder",
+        element: (
+          <ProtectedRoute>
+            <Stock/>
           </ProtectedRoute>
         ),
       },
