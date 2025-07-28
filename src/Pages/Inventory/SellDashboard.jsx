@@ -15,13 +15,13 @@ const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
 const nestedColumns = [
   {
-    label: "Product",
+    label: "Продукт",
     key: "product.title",
     render: (value, row) => row?.product?.title,
   },
-  { label: "Quantity", key: "amount" },
+  { label: "Количество", key: "amount" },
   {
-    label: "Price",
+    label: "Цена",
     key: "sellingPrice",
     render: (value) =>
       value.toLocaleString("ru-RU", { minimumFractionDigits: 2 }) + " UZS",
@@ -106,7 +106,7 @@ const SellDashboard = () => {
           { label: "Количество", key: "quantity" },
           { label: "Продукты", key: "products" },
           { label: "Общая стоимость", key: "total" },
-          { label: "Цена продажи", key: "soldBy" },
+          { label: "Цена продажи", key: "sellingPrice" },
         ]
       : [
           {
@@ -145,6 +145,10 @@ const SellDashboard = () => {
               .toLocaleString("ru-RU", { minimumFractionDigits: 2 }),
             soldBy: sale.soldBy,
             items: sale.items,
+            sellingPrice:
+              sale.items[0]?.sellingPrice?.toLocaleString("ru-RU", {
+                minimumFractionDigits: 2,
+              }) || "0.00",
           };
           console.log("Mapped Sale Data:", mappedData);
           return mappedData;
@@ -212,7 +216,7 @@ const SellDashboard = () => {
                 console.log("View Mode Changed:", { newMode: mode });
                 setViewMode(mode);
                 setCurrentPage(1);
-                setSalesData({ data: [], total: 0 }); 
+                setSalesData({ data: [], total: 0 });
               }}
               setCurrentPage={setCurrentPage}
             />
