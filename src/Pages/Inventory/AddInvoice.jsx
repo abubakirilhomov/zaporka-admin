@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import useFetch from "../../hooks/useFetch";
 import { toast } from "react-toastify";
@@ -18,11 +18,11 @@ const AddInvoice = () => {
       }
     : { "Content-Type": "application/json" };
 
-  const { data: productsData, loading: productsLoading, error: productsError } = useFetch(
-    `${apiUrl}/api/v1/products`,
-    { headers: authHeaders },
-    true
-  );
+  const {
+    data: productsData,
+    loading: productsLoading,
+    error: productsError,
+  } = useFetch(`${apiUrl}/api/v1/products`, { headers: authHeaders }, true);
 
   const [selectedProductId, setSelectedProductId] = useState("");
   const [amount, setAmount] = useState("");
@@ -169,7 +169,12 @@ const AddInvoice = () => {
       ),
     },
   ];
-
+  const totalCost = useMemo(() => {
+    return tempItems.reduce((sum, item) => {
+      const cost = (item.costPrice || 0) * (item.amount || 0);
+      return sum + cost;
+    }, 0);
+  }, [tempItems]);
   return (
     <div className="p-4">
       <div className="max-w-7xl bg-base-100/50 backdrop-blur-xl rounded-3xl shadow-2xl p-6">
@@ -180,7 +185,9 @@ const AddInvoice = () => {
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Левая часть: Форма */}
           <div className="lg:w-1/2">
-            <h3 className="text-lg font-semibold text-primary mb-4">Данные о товаре</h3>
+            <h3 className="text-lg font-semibold text-primary mb-4">
+              Данные о товаре
+            </h3>
             <div className="space-y-4">
               <div>
                 <label className="block mb-2 text-sm font-medium text-base-content">
@@ -285,7 +292,9 @@ const AddInvoice = () => {
 
           {/* Правая часть: Таблица добавленных товаров */}
           <div className="lg:w-1/2">
-            <h3 className="text-lg font-semibold text-primary mb-4">Добавленные товары</h3>
+            <h3 className="text-lg font-semibold text-primary mb-4">
+              Добавленные товары
+            </h3>
             <div className="max-h-[400px] overflow-y-auto">
               <CustomTable
                 data={tempItems}
@@ -294,6 +303,14 @@ const AddInvoice = () => {
                 emptyMessage="Товары пока не добавлены"
               />
             </div>
+            {tempItems.length > 0 && (
+              <div className="text-right text-lg font-semibold mt-4">
+                Общая сумма:{" "}
+                <span className="">
+                  {totalCost.toLocaleString("ru-RU")} UZS
+                </span>
+              </div>
+            )}
             <button
               className="btn btn-primary w-full mt-4"
               onClick={handleConfirm}

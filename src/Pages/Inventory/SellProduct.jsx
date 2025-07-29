@@ -194,7 +194,7 @@ const SellProduct = () => {
               </div>
             )}
             <button
-              className="btn btn-success text-white w-full mt-4"
+              className="btn btn-primary w-full mt-4"
               onClick={handleConfirm}
             >
               Подтвердить продажу
